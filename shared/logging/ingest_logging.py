@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pyspark.sql import DataFrame
 
-from schema.ops.ingest_log import select_log_cols, TABLE_NAME as INGEST_LOG_TABLE
-from ops.logging_utils import get_logger
+from shared.schema.ops.ingest_log import select_log_cols, TABLE_NAME as INGEST_LOG_TABLE
+from shared.logging.logging_utilis import get_logger
 
 logger = get_logger("ingest_logging")
 
