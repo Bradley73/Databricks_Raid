@@ -15,29 +15,29 @@ WITH new_src AS (
         source_file
     FROM {{ ref('stg_champindex') }}
 
-    {% IF is_incremental() %}
+    {% if is_incremental() %}
       WHERE snapshot_ts > (
-          SELECT COALESCE(MAX(first_seen_ts), TIMESTAMP('1900-01-01'))
+          SELECT COALESCE(MAX(first_seen_ts), CAST('1900-01-01' AS TIMESTAMP))
           FROM {{ this }}
       )
-    {% ENDIF %}
+    {% endif %}
 
 ),
 
 candidates AS (
 
-    {% IF is_incremental() %}
+    {% if is_incremental() %}
     -- Keep only champs not already in ever_owned
     SELECT n.*
     FROM new_src n
     LEFT ANTI JOIN /*+ BROADCAST(e) */ {{ this }} e
         ON e.account_name = n.account_name
-        AND e.champion_id  = n.champion_id
-    {% ELSE %}
+       AND e.champion_id  = n.champion_id
+    {% else %}
     -- First build: everything is a candidate
     SELECT *
     FROM new_src
-    {% ENDIF %}
+    {% endif %}
 
 ),
 
