@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze
+    catalog: workspace
+    schema: raid
+    tables:
+      - name: bronze_champindex
+        description: "Bronze champs snapshot ingestion (raw - append only)."
