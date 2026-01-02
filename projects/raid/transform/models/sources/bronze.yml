@@ -2,8 +2,12 @@ version: 2
 
 sources:
   - name: bronze
-    catalog: workspace
+    description: Bronze layer tables stored in the raid schema, prefixed with bronze_.
+    database: workspace
     schema: raid
+
     tables:
       - name: bronze_champindex
-        description: "Bronze champs snapshot ingestion (raw - append only)."
+        description: >
+          Raw Champion Index snapshot data ingested via Auto Loader into
+          workspace.raid.bronze_champindex.

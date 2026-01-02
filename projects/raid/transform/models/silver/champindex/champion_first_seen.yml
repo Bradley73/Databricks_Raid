@@ -1,0 +1,89 @@
+version: 2
+
+models:
+  - name: champion_first_seen
+    description: >
+      Feature-spine table capturing the first time an account ever owned a given unique champion.
+      Grain: one row per (account_name, champion_id).
+
+      Purpose:
+      - Provide a stable, low-compute foundation for downstream feature engineering without repeatedly scanning
+        full snapshot history or SCD2 tables.
+      - Serve as a canonical "first seen" event for champion ownership per account, useful for ML and analytics.
+
+      Example downstream use cases:
+      - Deletion propensity modeling:
+        Predict the likelihood an account will delete (sell/consume) newly acquired champions, using features such as:
+          * days_since_first_seen_champion_type (tenure of that champion type within the account)
+          * time_to_first_delete_of_type (when the type first appeared vs when deletions start occurring)
+          * prior_deletes_of_type_count (from a separate deletions fact) joined on champion_id
+          * champion_type_rarity/affinity/faction (from champion_lookup) joined on champion_id
+        This supports recommendations like “flag incoming champions likely to be deleted” or “suggest keeping champions
+        of certain types based on historical behavior”.
+
+      - Account progression / collection modeling:
+        Features like first_seen_cohort (when accounts start acquiring certain champion types) and collection breadth.
+
+      - Churn / engagement signals:
+        Early acquisition patterns of key champion types can be predictive of retention or spend (if you add spend signals).
+
+      Notes:
+      - This table is intentionally stateful and compact. It complements SCD2 rather than replacing it.
+      - If late/backfilled snapshots are expected, ensure upstream ordering logic (ops_processed_snapshots)
+        is consistent with how "first seen" is defined.
+
+    config:
+      alias: silver_champion_first_seen
+      tags: ['contract']
+      
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - champion_id
+
+    columns:
+      - name: account_name
+        description: Account identifier the champion ownership event belongs to.
+        tests:
+          - not_null
+
+      - name: champion_id
+        description: Champion type identifier (shared across owned copies).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      - name: first_seen_ts
+        description: >
+          Earliest snapshot timestamp where this account is observed owning this champion type.
+          Used to compute tenure-based features such as days_since_first_seen_champion_type.
+        tests:
+          - not_null
+
+      - name: first_owned_champion_id
+        description: >
+          Owned champion instance ID observed at first_seen_ts for this champion type.
+          Primarily useful for audit/debugging and lineage back to raw snapshots.
+        tests:
+          - not_null
+
+      - name: first_seen_source_file
+        description: >
+          Source file path from which the first_seen event was derived.
+          Useful for tracing and reconciliation with ingestion logs.
+        tests:
+          - not_null
+
+      - name: first_seen_snapshot_order_no
+        description: >
+          Snapshot ordering number (from ops_processed_snapshots) corresponding to the first_seen event.
+          Used as the processed watermark for incremental updates and for deterministic ordering of "first seen".
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "first_seen_snapshot_order_no >= 0"
+              config:
+                severity: warn

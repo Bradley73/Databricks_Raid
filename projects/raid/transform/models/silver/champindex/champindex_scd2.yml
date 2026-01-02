@@ -1,0 +1,158 @@
+version: 2
+
+models:
+  - name: champindex_scd2
+    description: >
+      Consumer-facing SCD2 view for owned champions per account, built on top of the dbt
+      snapshot snap_champindex. This view standardizes SCD2 metadata (valid_from, valid_to,
+      is_current), derives an is_deleted flag (entity no longer present in the latest snapshot),
+      and provides a stable interface for downstream analytics and reporting.
+
+    config:
+      alias: silver_champindex_scd2
+      tags: ['contract']
+      
+    tests:
+      # One version start per entity at a given timestamp
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - owned_champion_id
+            - valid_from
+
+      # At most one current record per entity
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - owned_champion_id
+          where: "is_current = true"
+
+      # SCD window sanity: valid_to must be after valid_from when present
+      - dbt_utils.expression_is_true:
+          expression: "valid_to is null or valid_to > valid_from"
+
+      # Current rows must not be deleted; deleted rows must not be current
+      - dbt_utils.expression_is_true:
+          expression: "not (is_current = true and is_deleted = true)"
+
+    columns:
+      # ----------------------------
+      # Business keys
+      # ----------------------------
+      - name: account_name
+        description: >
+          Account identifier the owned champion belongs to. Part of the natural business key.
+        # Optional: if champindex_current filters null keys, this will always be true;
+        # leaving not_null here is fine since this is a consumer-facing contract.
+        tests:
+          - not_null
+
+      - name: owned_champion_id
+        description: >
+          Unique identifier for the owned champion instance within an account. Together with
+          account_name identifies the entity being versioned in SCD2.
+        tests:
+          - not_null
+
+      - name: champion_id
+        description: >
+          Identifier of the champion type (shared across all owned copies). Present on each SCD2
+          version row and may change over time if the source system reassigns identifiers.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      # ----------------------------
+      # Tracked attributes (versioned)
+      # ----------------------------
+      - name: rank
+        description: Champion rank for this SCD2 version.
+
+      - name: level
+        description: Champion level for this SCD2 version.
+
+      - name: empower_level
+        description: Champion empower level for this SCD2 version.
+
+      - name: used_t1_mastery_scrolls
+        description: Tier 1 mastery scrolls used as of this version.
+
+      - name: unused_t1_mastery_scrolls
+        description: Tier 1 mastery scrolls unused as of this version.
+
+      - name: used_t2_mastery_scrolls
+        description: Tier 2 mastery scrolls used as of this version.
+
+      - name: unused_t2_mastery_scrolls
+        description: Tier 2 mastery scrolls unused as of this version.
+
+      - name: used_t3_mastery_scrolls
+        description: Tier 3 mastery scrolls used as of this version.
+
+      - name: unused_t3_mastery_scrolls
+        description: Tier 3 mastery scrolls unused as of this version.
+
+      - name: hp
+        description: Base HP stat recorded for this version.
+
+      - name: atk
+        description: Base attack stat recorded for this version.
+
+      - name: def
+        description: Base defense stat recorded for this version.
+
+      - name: crit_rate
+        description: Critical hit rate recorded for this version.
+
+      - name: crit_damage
+        description: Critical damage multiplier recorded for this version.
+
+      - name: spd
+        description: Speed stat recorded for this version.
+
+      - name: acc
+        description: Accuracy stat recorded for this version.
+
+      - name: res
+        description: Resistance stat recorded for this version.
+
+      - name: blessing_id
+        description: >
+          Identifier of the applied blessing for this version. May be null if no blessing is active.
+
+      - name: blessing_grade
+        description: >
+          Grade or tier of the applied blessing for this version. May be null if no blessing is active.
+
+      # ----------------------------
+      # SCD2 semantics (standardized)
+      # ----------------------------
+      - name: valid_from
+        description: Timestamp when this version became effective.
+        tests:
+          - not_null
+
+      - name: valid_to
+        description: Timestamp when this version stopped being effective (NULL = current).
+
+      - name: is_current
+        description: >
+          True if this row represents the current active version for the entity (valid_to is NULL).
+        tests:
+          - not_null
+
+      - name: is_deleted
+        description: >
+          True if the entity has no current active version in the snapshot history, meaning it was
+          hard-deleted from the current-state input (invalidate_hard_deletes behavior).
+        tests:
+          - not_null
+
+      - name: scd_id
+        description: >
+          Stable surrogate identifier for the SCD2 version row (derived from dbt_scd_id in the snapshot).
+        tests:
+          - not_null
+          - unique

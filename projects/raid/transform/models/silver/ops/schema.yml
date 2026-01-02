@@ -1,0 +1,233 @@
+version: 2
+
+models:
+  - name: ops_processed_snapshots
+    description: >
+      Registry of processed snapshot files per account. Stores the authoritative processing order
+      and an event-time sort key used to detect out-of-order snapshots. This table acts as the
+      control plane for incremental downstream models (current selection, first_seen, events).
+
+      Key concepts:
+      - snapshot_order_no: Monotonic processing sequence per account (ingestion order).
+      - event_sort_key: Deterministic event-time ordering key derived from snapshot metadata.
+      - is_out_of_order: True when an incoming snapshot's event_time order would precede the
+        latest previously processed snapshot for the same account.
+
+    config:
+      alias: silver_ops_processed_snapshots
+      tags: ['contract']
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - source_file
+
+      # Cheap invariants
+      - dbt_utils.expression_is_true:
+          expression: "snapshot_order_no >= 1"
+          config:
+            severity: warn
+
+      - dbt_utils.expression_is_true:
+          expression: "snapshot_version is null or snapshot_version >= 0"
+          config:
+            severity: warn
+
+      # sanity checks
+      - dbt_utils.expression_is_true:
+          expression: "event_sort_key like '________-____-%'"
+          config: {severity: warn}
+
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [account_name, snapshot_order_no]
+
+    columns:
+      - name: account_name
+        description: >
+          Account identifier parsed from snapshot metadata/path. Partition key for ordering and downstream processing.
+        tests:
+          - not_null
+
+      - name: source_file
+        description: >
+          Unique snapshot file path for the account and snapshot. Used as the file-level identifier in downstream joins.
+        tests:
+          - not_null
+
+      - name: snapshot_order_no
+        description: >
+          Monotonic processing-order sequence per account. Calculated incrementally as snapshots are ingested.
+          Defines the authoritative processing order for downstream incremental models.
+        tests:
+          - not_null
+
+      - name: event_sort_key
+        description: >
+          Deterministic event-time ordering key derived from snapshot_date, snapshot_version, and source_file.
+          Used to detect out-of-order snapshots and to apply consistent event-time ordering in downstream models.
+        tests:
+          - not_null
+
+      - name: is_out_of_order
+        description: >
+          True if the snapshot's event_sort_key is less than the maximum event_sort_key previously processed
+          for the same account. Out-of-order snapshots are excluded from some downstream models.
+        tests:
+          - not_null
+
+      - name: snapshot_ts
+        description: >
+          Timestamp when the snapshot was taken/ingested (from stg_champindex). Used for incremental cutoffs.
+        tests:
+          - not_null
+
+      - name: snapshot_date
+        description: >
+          Business date represented by the snapshot (used in event_sort_key and deterministic ordering).
+
+      - name: snapshot_version
+        description: >
+          Version number within the same snapshot_date (used in event_sort_key and deterministic ordering).
+
+  - name: ops_quarantine_champindex_current_keys
+    description: >
+      Quarantine view for champindex_current key integrity. Contains only rows from the
+      latest in-order snapshot per account (per ops_processed_snapshots) where one or
+      more required key fields are NULL. Used as the single enforcement/debug surface
+      for key-null issues before building champindex_current and downstream SCD2/events.
+
+    config:
+      alias: silver_ops_quarantine_champindex_current_keys
+      tags: ['contract']
+
+    tests:
+      # Each quarantined row should have a reason
+      - dbt_utils.expression_is_true:
+          expression: "failure_reason is not null"
+
+    columns:
+      - name: failure_reason
+        description: >
+          Reason the row was quarantined. Currently emitted for NULL keys:
+          NULL_KEY:account_name, NULL_KEY:owned_champion_id, NULL_KEY:champion_id,
+          NULL_KEY:source_file.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "NULL_KEY:account_name"
+                - "NULL_KEY:owned_champion_id"
+                - "NULL_KEY:champion_id"
+                - "NULL_KEY:source_file"
+
+      - name: account_name
+        description: >
+          Account identifier from stg_champindex. May be NULL for quarantined rows.
+
+      - name: owned_champion_id
+        description: >
+          Owned champion instance identifier from stg_champindex. May be NULL for
+          quarantined rows.
+
+      - name: champion_id
+        description: >
+          Champion type identifier from stg_champindex. May be NULL for quarantined rows.
+
+      - name: source_file
+        description: >
+          Source file path from stg_champindex. May be NULL for quarantined rows.
+
+      # The remaining columns are passthrough from stg_champindex for debugging.
+
+  - name: ops_last_run_summary
+    description: >
+      Operational summary of the latest processed snapshot per account. Provides a single
+      row per account capturing latest snapshot metadata, row counts for that snapshot,
+      and key-quarantine counts. Designed for monitoring and as a lightweight input to
+      gold operational dashboards.
+
+    config:
+      alias: silver_ops_last_run_summary
+      tags: ['contract']
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [account_name]
+
+    columns:
+      - name: account_name
+        description: Account identifier.
+        tests: [not_null]
+
+      - name: source_file
+        description: Source file path for the latest snapshot selected for the account.
+        tests: [not_null]
+
+      - name: snapshot_ts
+        description: Snapshot ingestion timestamp for the latest snapshot.
+        tests: [not_null]
+
+      - name: snapshot_date
+        description: Business date represented by the latest snapshot.
+
+      - name: snapshot_version
+        description: Snapshot version within the snapshot_date for the latest snapshot.
+
+      - name: snapshot_order_no
+        description: Monotonic processing order number for the latest snapshot.
+        tests: [not_null]
+
+      - name: is_out_of_order
+        description: Whether the latest snapshot is flagged as out-of-order.
+        tests: [not_null]
+
+      - name: champ_rows_in_snapshot
+        description: Count of rows in stg_champindex for the latest snapshot file.
+        tests: [not_null]
+
+      - name: quarantine_key_rows_in_snapshot
+        description: Count of quarantined rows with null keys for the latest snapshot file.
+        tests: [not_null]
+
+  - name: ops_out_of_order_snapshots
+    description: >
+      Operational view listing snapshot files flagged as out-of-order per account
+      based on event_sort_key ordering in ops_processed_snapshots. These snapshots
+      are typically excluded from downstream "current" and event derivations to
+      preserve deterministic ordering.
+
+    config:
+      alias: silver_ops_out_of_order_snapshots
+      tags: ['contract']
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [account_name, source_file]
+
+    columns:
+      - name: account_name
+        description: Account identifier.
+        tests: [not_null]
+
+      - name: source_file
+        description: Snapshot file path flagged as out-of-order.
+        tests: [not_null]
+
+      - name: snapshot_ts
+        description: Snapshot ingestion timestamp.
+        tests: [not_null]
+
+      - name: snapshot_date
+        description: Business date represented by the snapshot.
+
+      - name: snapshot_version
+        description: Snapshot version within snapshot_date.
+
+      - name: snapshot_order_no
+        description: Processing order number assigned to the snapshot for this account.
+        tests: [not_null]
+
+      - name: event_sort_key
+        description: Event-time ordering key used to detect out-of-order snapshots.
+        tests: [not_null]

@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: champion_lookup
+    description: >
+      Silver lookup table for champion type descriptors (one row per champion_id).
+      This table represents the canonical dimension for champion types in the Raid
+      lakehouse and is used to enrich owned-champion models (e.g., current state,
+      SCD2 history, and events) without duplicating descriptive attributes across
+      time or grain.
+
+      Incremental behavior:
+      - Insert-only by champion_id. Once a champion_id exists in this table, it is
+        not updated or overwritten.
+      - The first observed attribute set for a champion_id is treated as authoritative.
+      - If a champion's descriptive attributes (e.g., name, rarity, affinity, faction)
+        are ever observed to change upstream, this should be treated as a data quality
+        issue and explicitly investigated rather than silently merged or corrected.
+
+      Design notes:
+      - This model is intentionally compact and stable, and is expected to grow slowly.
+      - It serves as the parent dimension for referential integrity checks from downstream
+        fact, event, and SCD2 models.
+      - If the source system begins to support true attribute changes over time, this
+        model can be promoted to an SCD dimension.
+
+    config:
+      alias: silver_champion_lookup
+      tags: ['contract']
+
+    columns:
+      - name: champion_id
+        description: Champion type identifier (primary key for this lookup).
+        tests:
+          - not_null
+          - unique
+
+      - name: champion_name
+        description: Display name of the champion.
+        tests:
+          - not_null
+
+      - name: rarity
+        description: Champion rarity tier.
+        tests:
+          - not_null
+
+      - name: affinity
+        description: Champion affinity.
+        tests:
+          - not_null
+
+      - name: faction
+        description: Champion faction.
+        tests:
+          - not_null

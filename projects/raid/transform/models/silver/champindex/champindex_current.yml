@@ -1,0 +1,129 @@
+version: 2
+
+models:
+  - name: champindex_current
+    description: >
+      Current-state view of owned champions per account. Selects the latest in-order
+      snapshot file per account (based on ops_processed_snapshots) and exposes one row
+      per owned_champion_id for downstream use. Invalid key rows are excluded and routed
+      to a quarantine model.
+
+    config:
+      alias: silver_champindex_current
+      tags: ['contract']
+      
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - owned_champion_id
+
+    columns:
+      - name: account_name
+        description: >
+          Account identifier the owned champion belongs to. Acts as a primary business
+          partition for current-state selection.
+
+      - name: owned_champion_id
+        description: >
+          Unique identifier for the owned champion instance within an account. This
+          represents a single owned copy of a champion and is stable across snapshots.
+
+      - name: champion_id
+        description: >
+          Identifier of the champion type (shared across all owned copies). Used to join
+          to the champion_lookup dimension for static champion attributes.
+        tests:
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      - name: rank
+        description: >
+          Current rank of the owned champion in the latest in-order snapshot.
+
+      - name: level
+        description: >
+          Current level of the owned champion in the latest in-order snapshot.
+
+      - name: empower_level
+        description: >
+          Current empower level applied to the owned champion in the latest snapshot.
+
+      - name: used_t1_mastery_scrolls
+        description: >
+          Number of Tier 1 mastery scrolls consumed by the owned champion as of the
+          latest snapshot.
+
+      - name: unused_t1_mastery_scrolls
+        description: >
+          Number of unused Tier 1 mastery scrolls available to the owned champion as of
+          the latest snapshot.
+
+      - name: used_t2_mastery_scrolls
+        description: >
+          Number of Tier 2 mastery scrolls consumed by the owned champion as of the
+          latest snapshot.
+
+      - name: unused_t2_mastery_scrolls
+        description: >
+          Number of unused Tier 2 mastery scrolls available to the owned champion as of
+          the latest snapshot.
+
+      - name: used_t3_mastery_scrolls
+        description: >
+          Number of Tier 3 mastery scrolls consumed by the owned champion as of the
+          latest snapshot.
+
+      - name: unused_t3_mastery_scrolls
+        description: >
+          Number of unused Tier 3 mastery scrolls available to the owned champion as of
+          the latest snapshot.
+
+      - name: hp
+        description: >
+          Current base HP stat of the owned champion in the latest snapshot.
+
+      - name: atk
+        description: >
+          Current base attack stat of the owned champion in the latest snapshot.
+
+      - name: def
+        description: >
+          Current base defense stat of the owned champion in the latest snapshot.
+
+      - name: crit_rate
+        description: >
+          Current critical hit rate of the owned champion in the latest snapshot.
+
+      - name: crit_damage
+        description: >
+          Current critical damage multiplier of the owned champion in the latest
+          snapshot.
+
+      - name: spd
+        description: >
+          Current speed stat of the owned champion in the latest snapshot.
+
+      - name: acc
+        description: >
+          Current accuracy stat of the owned champion in the latest snapshot.
+
+      - name: res
+        description: >
+          Current resistance stat of the owned champion in the latest snapshot.
+
+      - name: blessing_id
+        description: >
+          Identifier of the blessing applied to the owned champion. May be null if no
+          blessing is active in the current snapshot.
+
+      - name: blessing_grade
+        description: >
+          Grade or tier of the applied blessing. May be null if no blessing is active in
+          the current snapshot.
+
+      - name: source_file
+        description: >
+          Source file path corresponding to the latest in-order snapshot used to derive
+          the current state for the account.

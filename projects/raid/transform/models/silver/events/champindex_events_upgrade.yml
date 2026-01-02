@@ -1,0 +1,81 @@
+version: 2
+
+models:
+  - name: champindex_events_upgrade
+    description: >
+      Tall event table derived from champindex_scd2. Emits one row per upgraded attribute
+      (RANK, EMPOWER, BLESSING) when the value increases vs the previous SCD2 version for the
+      same (account_name, owned_champion_id). Multiple rows may be emitted for a single scd_id
+      if multiple attributes increased. Lineage and SCD2 metadata are intentionally omitted;
+      join back to champindex_scd2 via scd_id if needed.
+
+    config:
+      alias: silver_champindex_events_upgrade
+      tags: ['contract']
+      
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "delta_value > 0"
+      - dbt_utils.expression_is_true:
+          expression: "new_value > old_value"
+
+    columns:
+      - name: event_id
+        description: Unique identifier for the upgrade event (scd_id + upgrade_type).
+        tests:
+          - not_null
+          - unique
+
+      - name: scd_id
+        description: >
+          SCD2 version identifier from champindex_scd2 for traceability joins.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champindex_scd2')
+              field: scd_id
+
+      - name: account_name
+        description: Account identifier the upgrade event belongs to.
+        tests:
+          - not_null
+
+      - name: owned_champion_id
+        description: Owned champion instance identifier the upgrade applies to.
+        tests:
+          - not_null
+
+      - name: champion_id
+        description: Champion type identifier for the owned champion at the time of upgrade.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      - name: event_ts
+        description: Timestamp the upgrade becomes effective (valid_from of the SCD2 row).
+        tests:
+          - not_null
+
+      - name: upgrade_type
+        description: Which attribute increased (RANK, EMPOWER, BLESSING).
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['RANK', 'EMPOWER', 'BLESSING']
+
+      - name: old_value
+        description: Previous value for the upgraded attribute.
+        tests:
+          - not_null
+
+      - name: new_value
+        description: New value for the upgraded attribute.
+        tests:
+          - not_null
+
+      - name: delta_value
+        description: Difference between new_value and old_value (new_value - old_value). Always positive.
+        tests:
+          - not_null

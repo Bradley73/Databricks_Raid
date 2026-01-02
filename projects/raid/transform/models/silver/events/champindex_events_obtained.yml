@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: champindex_events_obtained
+    description: >
+      Event fact table derived from champindex_scd2. Emits one row per
+      (account_name, owned_champion_id) when the champion is first observed in the SCD2
+      history (i.e., the earliest valid_from for that entity). Incremental runs only
+      consider new SCD2 rows since the last processed event_ts.
+
+    config:
+      alias: silver_champindex_events_obtained
+      tags: ['contract']
+      
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['account_name', 'owned_champion_id']
+
+      # event_id is defined as scd_id for obtained events
+      - dbt_utils.expression_is_true:
+          expression: "event_id = scd_id"
+
+    columns:
+      - name: event_id
+        description: >
+          Unique identifier for the obtained event. Defined as the scd_id of the first SCD2
+          version for the owned champion entity.
+        tests:
+          - not_null
+          - unique
+
+      - name: scd_id
+        description: >
+          SCD2 row identifier for the first observed version of this (account_name, owned_champion_id).
+          Used for traceability joins back to champindex_scd2.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champindex_scd2')
+              field: scd_id
+
+      - name: account_name
+        description: Account identifier the obtained event belongs to.
+        tests:
+          - not_null
+
+      - name: owned_champion_id
+        description: Owned champion instance identifier that was first obtained/observed.
+        tests:
+          - not_null
+
+      - name: champion_id
+        description: Champion type identifier for the owned champion at time of first observation.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      - name: event_ts
+        description: Timestamp the owned champion is first observed (valid_from of the first SCD2 version).
+        tests:
+          - not_null

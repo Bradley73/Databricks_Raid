@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'view',
-    alias = 'stg_champindex'
+    alias = 'silver_stg_champindex'
 ) }}
 
 SELECT

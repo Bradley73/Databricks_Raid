@@ -1,0 +1,169 @@
+version: 2
+
+models:
+  - name: snap_champindex
+    description: >
+      SCD2 history of owned champions per account, implemented as a dbt snapshot
+      (check strategy) over champindex_current. A new version is created whenever
+      one or more tracked attributes change. The current active record is identified
+      by dbt_valid_to IS NULL.
+
+    config:
+      tags: ['contract']
+
+    tests:
+      # Ensure each SCD2 version start is unique per owned champion
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - owned_champion_id
+            - dbt_valid_from
+
+      # Ensure at most one current version per owned champion
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - account_name
+            - owned_champion_id
+          where: "dbt_valid_to IS NULL"
+
+    columns:
+      # ----------------------------
+      # Business keys
+      # ----------------------------
+      - name: account_name
+        description: >
+          Account identifier the owned champion belongs to. Part of the natural
+          business key for the owned champion entity.
+        tests:
+          - not_null
+
+      - name: owned_champion_id
+        description: >
+          Unique identifier for the owned champion instance within an account.
+          Together with account_name, forms the snapshot unique_key.
+        tests:
+          - not_null
+
+      - name: champion_id
+        description: >
+          Identifier of the champion type (shared across all owned copies).
+          Changes to this field trigger a new SCD2 version.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_lookup')
+              field: champion_id
+
+      # ----------------------------
+      # Tracked attributes (check_cols)
+      # ----------------------------
+      - name: rank
+        description: >
+          Champion rank recorded for this SCD2 version. Tracked for change detection.
+
+      - name: level
+        description: >
+          Champion level recorded for this SCD2 version. Tracked for change detection.
+
+      - name: empower_level
+        description: >
+          Champion empower level recorded for this SCD2 version. Tracked for change detection.
+
+      - name: used_t1_mastery_scrolls
+        description: >
+          Number of Tier 1 mastery scrolls used as of this version.
+
+      - name: unused_t1_mastery_scrolls
+        description: >
+          Number of unused Tier 1 mastery scrolls as of this version.
+
+      - name: used_t2_mastery_scrolls
+        description: >
+          Number of Tier 2 mastery scrolls used as of this version.
+
+      - name: unused_t2_mastery_scrolls
+        description: >
+          Number of unused Tier 2 mastery scrolls as of this version.
+
+      - name: used_t3_mastery_scrolls
+        description: >
+          Number of Tier 3 mastery scrolls used as of this version.
+
+      - name: unused_t3_mastery_scrolls
+        description: >
+          Number of unused Tier 3 mastery scrolls as of this version.
+
+      - name: hp
+        description: >
+          Base HP stat recorded for this SCD2 version.
+
+      - name: atk
+        description: >
+          Base attack stat recorded for this SCD2 version.
+
+      - name: def
+        description: >
+          Base defense stat recorded for this SCD2 version.
+
+      - name: crit_rate
+        description: >
+          Critical hit rate recorded for this SCD2 version.
+
+      - name: crit_damage
+        description: >
+          Critical damage multiplier recorded for this SCD2 version.
+
+      - name: spd
+        description: >
+          Speed stat recorded for this SCD2 version.
+
+      - name: acc
+        description: >
+          Accuracy stat recorded for this SCD2 version.
+
+      - name: res
+        description: >
+          Resistance stat recorded for this SCD2 version.
+
+      - name: blessing_id
+        description: >
+          Identifier of the applied blessing for this version. May be null if no
+          blessing is active.
+
+      - name: blessing_grade
+        description: >
+          Grade or tier of the applied blessing for this version. May be null if no
+          blessing is active.
+
+      # ----------------------------
+      # Lineage
+      # ----------------------------
+      - name: source_file
+        description: >
+          Source file path from champindex_current that produced this SCD2 version.
+
+      # ----------------------------
+      # dbt-managed snapshot metadata
+      # ----------------------------
+      - name: dbt_valid_from
+        description: >
+          Timestamp when this SCD2 version became valid (dbt-managed).
+        tests:
+          - not_null
+
+      - name: dbt_valid_to
+        description: >
+          Timestamp when this SCD2 version stopped being valid.
+          NULL indicates the current active version (dbt-managed).
+
+      - name: dbt_scd_id
+        description: >
+          Surrogate identifier for the SCD2 version row (dbt-managed).
+        tests:
+          - not_null
+          - unique
+
+      - name: dbt_updated_at
+        description: >
+          Timestamp used internally by dbt snapshotting for change detection
+          bookkeeping (dbt-managed).
