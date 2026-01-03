@@ -305,9 +305,9 @@ models:
       - name: blessing_grade
         description: Grade or tier of the applied blessing.
         tests:
-          - dbt_utils.expression_is_true:
-              arguments:
-                expression: "is null or >= 0"
+          - accepted_range:
+              min_value: 0
+              inclusive: true
               config:
                 severity: warn
 
