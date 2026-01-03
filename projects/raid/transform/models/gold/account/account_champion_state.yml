@@ -1,0 +1,102 @@
+version: 2
+
+models:
+  - name: gold_account_champion_state
+    description: |
+      Consumer-ready current-state rollup per (account_name, champion_id), built by pre-aggregating
+      SCD2 state and observable event tables to the same grain before joining.
+
+      **Grain:** one row per (account_name, champion_id).
+
+      **Important source notes:**
+      - The upstream snapshot source means event-derived counts (e.g. total_obtained) are *observable only* and may undercount
+        true activity if champions were obtained/upgraded and then used as fodder between snapshots.
+      - `champion_first_seen` is treated as a **contractual** source of truth for first observation:
+        it is derived from the staging ingestion stream (not per-run current-state snapshots) and therefore is expected
+        to have a record for any champion ever observed for an account. This model uses an **inner join** to enforce that contract.
+
+      Tests in this model focus only on logic introduced here and avoid duplicating upstream column validation.
+    meta:
+      layer: gold
+      grain: ["account_name", "champion_id"]
+
+    tests:
+      # Contract: one row per grain
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ["account_name", "champion_id"]
+
+      # Aggregates introduced here should never be negative
+      - dbt_utils.expression_is_true:
+          expression: >
+            total_owned >= 0
+            AND total_deleted >= 0
+            AND coalesce(total_obtained, 0) >= 0
+            AND coalesce(max_rank, 0) >= 0
+            AND coalesce(max_empower_level, 0) >= 0
+            AND coalesce(max_blessing_level, 0) >= 0
+          config:
+            severity: error
+
+      # Consistency smoke test (warn only due to snapshot gaps):
+      # If obtained events were complete, obtained ~= owned + deleted.
+      - dbt_utils.expression_is_true:
+          expression: "coalesce(total_obtained, 0) = total_owned + total_deleted"
+          config:
+            severity: warn
+
+      # Optional (warn): "upgraded but not owned" can happen with snapshot gaps, but it’s a useful signal.
+      - dbt_utils.expression_is_true:
+          expression: "NOT (total_owned = 0 AND last_upgraded_ts IS NOT NULL)"
+          config:
+            severity: warn
+
+    columns:
+      - name: account_name
+        description: "Account identifier (natural key). Inherited from upstream models."
+
+      - name: champion_name
+        description: "Champion display name from champion_lookup."
+
+      - name: rarity
+        description: "Champion rarity from champion_lookup."
+
+      - name: affinity
+        description: "Champion affinity from champion_lookup."
+
+      - name: faction
+        description: "Champion faction from champion_lookup."
+
+      - name: first_seen_ts
+        description: |
+          First time this champion_id was observed for the account, sourced from champion_first_seen.
+          This is considered robust due to ingestion contracts (staging-derived), and is expected to exist for all
+          champions ever observed for an account.
+
+      - name: last_upgraded_ts
+        description: |
+          Latest observable upgrade timestamp from champindex_events_upgraded (MAX(event_ts)) for the grain.
+          May be null if no upgrade was observed.
+
+      - name: total_owned
+        description: |
+          Derived from champindex_scd2: SUM(is_current) at (account_name, champion_id).
+          Interpreted as number of currently owned copies observed.
+
+      - name: total_deleted
+        description: |
+          Derived from champindex_scd2: SUM(is_deleted) at (account_name, champion_id).
+          Represents observable deletions across the SCD2 history.
+
+      - name: total_obtained
+        description: |
+          Derived from champindex_events_obtained: COUNT(*) at (account_name, champion_id).
+          Due to snapshot gaps and fodder usage between snapshots, this is a lower bound on true obtains.
+
+      - name: max_rank
+        description: "Derived from champindex_scd2: MAX(rank) at (account_name, champion_id)."
+
+      - name: max_empower_level
+        description: "Derived from champindex_scd2: MAX(empower_level) at (account_name, champion_id)."
+
+      - name: max_blessing_level
+        description: "Derived from champindex_scd2: MAX(blessing_id) at (account_name, champion_id)."
