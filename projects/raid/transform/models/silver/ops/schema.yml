@@ -122,11 +122,12 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values:
-                - "NULL_KEY:account_name"
-                - "NULL_KEY:owned_champion_id"
-                - "NULL_KEY:champion_id"
-                - "NULL_KEY:source_file"
+              arguments:
+                values:
+                  - "NULL_KEY:account_name"
+                  - "NULL_KEY:owned_champion_id"
+                  - "NULL_KEY:champion_id"
+                  - "NULL_KEY:source_file"
 
       - name: account_name
         description: >

@@ -19,8 +19,8 @@ models:
               - account_name
               - owned_champion_id
               - source_file
-        config:
-          severity: warn
+          config:
+            severity: warn
 
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -29,8 +29,8 @@ models:
               - owned_champion_id
               - snapshot_date
               - snapshot_version
-        config:
-          severity: warn
+          config:
+            severity: warn
 
       # moved here because it references two columns
       - dbt_utils.expression_is_true:
@@ -354,7 +354,7 @@ models:
           - accepted_values:
               arguments:
                 values: ["1.0"]
-            config:
-              severity: warn
+              config:
+                severity: warn
 
 

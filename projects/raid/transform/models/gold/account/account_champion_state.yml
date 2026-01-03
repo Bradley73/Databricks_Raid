@@ -19,10 +19,9 @@ models:
 
     config:
       alias: gold_account_champion_state
-
-    meta:
-      layer: gold
-      grain: ["account_name", "champion_id"]
+      meta:
+        layer: gold
+        grain: ["account_name", "champion_id"]
 
     tests:
       # Contract: one row per grain
