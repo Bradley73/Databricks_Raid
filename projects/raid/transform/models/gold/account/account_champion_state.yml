@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: gold_account_champion_state
+  - name: account_champion_state
     description: |
       Consumer-ready current-state rollup per (account_name, champion_id), built by pre-aggregating
       SCD2 state and observable event tables to the same grain before joining.
@@ -23,32 +23,39 @@ models:
     tests:
       # Contract: one row per grain
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ["account_name", "champion_id"]
+          arguments:
+            combination_of_columns: ["account_name", "champion_id"]
 
       # Aggregates introduced here should never be negative
       - dbt_utils.expression_is_true:
-          expression: >
-            total_owned >= 0
-            AND total_deleted >= 0
-            AND coalesce(total_obtained, 0) >= 0
-            AND coalesce(max_rank, 0) >= 0
-            AND coalesce(max_empower_level, 0) >= 0
-            AND coalesce(max_blessing_level, 0) >= 0
-          config:
-            severity: error
+          arguments:
+            expression: >
+              total_owned >= 0
+              AND total_deleted >= 0
+              AND coalesce(total_obtained, 0) >= 0
+              AND coalesce(max_rank, 0) >= 0
+              AND coalesce(max_empower_level, 0) >= 0
+              AND coalesce(max_blessing_level, 0) >= 0
+            config:
+              severity: error
 
       # Consistency smoke test (warn only due to snapshot gaps):
       # If obtained events were complete, obtained ~= owned + deleted.
       - dbt_utils.expression_is_true:
-          expression: "coalesce(total_obtained, 0) = total_owned + total_deleted"
-          config:
-            severity: warn
+          arguments:
+            expression: "coalesce(total_obtained, 0) = total_owned + total_deleted"
+            config:
+              severity: warn
 
       # Optional (warn): "upgraded but not owned" can happen with snapshot gaps, but it’s a useful signal.
       - dbt_utils.expression_is_true:
-          expression: "NOT (total_owned = 0 AND last_upgraded_ts IS NOT NULL)"
-          config:
-            severity: warn
+          arguments:
+            expression: "NOT (total_owned = 0 AND last_upgraded_ts IS NOT NULL)"
+            config:
+              severity: warn
+
+    config:
+      alias: gold_account_champion_state
 
     columns:
       - name: account_name

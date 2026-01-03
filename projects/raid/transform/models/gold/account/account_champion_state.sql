@@ -24,7 +24,7 @@ events_obtained AS (
 events_upgraded AS (
     SELECT account_name, champion_id,
         MAX(event_ts) AS last_upgraded_ts
-    FROM {{ ref('champindex_events_upgraded') }}
+    FROM {{ ref('champindex_events_upgrade') }}
     GROUP BY account_name, champion_id
 ),
 
