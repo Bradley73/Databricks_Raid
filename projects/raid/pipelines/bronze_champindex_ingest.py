@@ -82,7 +82,10 @@ def build_bronze_df(spark: SparkSession, *, run_id: str) -> DataFrame:
 
     ddmmyyyy_col = F.regexp_extract(file_name_col, r"^champindex_[^_]+_(\d{8})_\d+\.csv$", 1)
     snapshot_date_col = F.try_to_date(ddmmyyyy_col, "ddMMyyyy")
-
+    snapshot_version_col = F.expr(
+        "try_cast(regexp_extract(source_file, '^champindex_[^_]+_\\d{8}_(\\d+)\\.csv$', 1) AS INT)"
+    )
+    
     raw_stream = (
         spark.readStream.format("cloudFiles")
         .option("cloudFiles.format", "csv")
@@ -99,6 +102,7 @@ def build_bronze_df(spark: SparkSession, *, run_id: str) -> DataFrame:
         .withColumn("AccountName", account_name_col)
         .withColumn("snapshot_ts", F.current_timestamp())
         .withColumn("snapshot_date", snapshot_date_col)
+        .withColumn("snapshot_version", snapshot_version_col)
         .withColumn("schema_version", F.lit(SCHEMA_VERSION))
         .withColumn("run_id", F.lit(run_id))  # IMPORTANT: before select(*BRONZE_COLS)
         .select(*BRONZE_COLS)
