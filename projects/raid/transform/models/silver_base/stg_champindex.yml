@@ -14,17 +14,19 @@ models:
       
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-            - source_file
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+              - source_file
 
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-            - snapshot_date
-            - snapshot_version
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+              - snapshot_date
+              - snapshot_version
 
     columns:
       - name: account_name
@@ -56,9 +58,10 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6]
-              config:
-                severity: warn
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+                config:
+                  severity: warn
 
       - name: level
         description: Champion level.
@@ -67,13 +70,15 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "level >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "level >= 0"
+                config:
+                  severity: warn
           - dbt_utils.expression_is_true:
-              expression: "level <= rank * 10"
-              config:
-                severity: warn
+              arguments:
+                expression: "level <= rank * 10"
+                config:
+                  severity: warn
 
       - name: empower_level
         description: Champion empower level.
@@ -82,9 +87,10 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [0, 1, 2, 3, 4]
-              config:
-                severity: warn
+              arguments:
+                values: [0, 1, 2, 3, 4]
+                config:
+                  severity: warn
 
       - name: rarity
         description: Champion rarity tier.
@@ -93,9 +99,10 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6]
-              config:
-                severity: warn
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+                config:
+                  severity: warn
 
       - name: affinity
         description: Champion affinity.
@@ -104,9 +111,10 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4]
-              config:
-                severity: warn
+              arguments:
+                values: [1, 2, 3, 4]
+                config:
+                  severity: warn
 
       - name: faction
         description: Champion faction.
@@ -115,9 +123,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "faction between 1 and 18"
-              config:
-                severity: warn
+              arguments:
+                expression: "faction between 1 and 18"
+                config:
+                  severity: warn
 
       - name: used_t1_mastery_scrolls
         description: Number of Tier 1 mastery scrolls used.
@@ -126,9 +135,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "used_t1_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "used_t1_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: unused_t1_mastery_scrolls
         description: Number of unused Tier 1 mastery scrolls.
@@ -137,9 +147,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "unused_t1_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "unused_t1_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: used_t2_mastery_scrolls
         description: Number of Tier 2 mastery scrolls used.
@@ -148,9 +159,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "used_t2_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "used_t2_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: unused_t2_mastery_scrolls
         description: Number of unused Tier 2 mastery scrolls.
@@ -159,9 +171,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "unused_t2_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "unused_t2_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: used_t3_mastery_scrolls
         description: Number of Tier 3 mastery scrolls used.
@@ -170,9 +183,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "used_t3_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "used_t3_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: unused_t3_mastery_scrolls
         description: Number of unused Tier 3 mastery scrolls.
@@ -181,9 +195,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "unused_t3_mastery_scrolls >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "unused_t3_mastery_scrolls >= 0"
+                config:
+                  severity: warn
 
       - name: hp
         description: Champion base HP stat.
@@ -192,9 +207,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "hp >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "hp >= 0"
+                config:
+                  severity: warn
 
       - name: atk
         description: Champion base attack stat.
@@ -203,9 +219,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "atk >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "atk >= 0"
+                config:
+                  severity: warn
 
       - name: def
         description: Champion base defense stat.
@@ -214,9 +231,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "def >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "def >= 0"
+                config:
+                  severity: warn
 
       - name: crit_rate
         description: Champion critical hit rate.
@@ -225,9 +243,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "crit_rate >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "crit_rate >= 0"
+                config:
+                  severity: warn
 
       - name: crit_damage
         description: Champion critical damage multiplier.
@@ -236,9 +255,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "crit_damage >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "crit_damage >= 0"
+                config:
+                  severity: warn
 
       - name: spd
         description: Champion speed stat.
@@ -247,9 +267,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "spd >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "spd >= 0"
+                config:
+                  severity: warn
 
       - name: acc
         description: Champion accuracy stat.
@@ -258,9 +279,10 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "acc >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "acc >= 0"
+                config:
+                  severity: warn
 
       - name: res
         description: Champion resistance stat.
@@ -269,25 +291,28 @@ models:
               config:
                 severity: warn
           - dbt_utils.expression_is_true:
-              expression: "res >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "res >= 0"
+                config:
+                  severity: warn
 
       - name: blessing_id
         description: Identifier of the applied blessing.
         tests:
           - accepted_values:
-              values: [0, 1, 2, 3, 4, 5, 6]
-              config:
-                severity: warn
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6]
+                config:
+                  severity: warn
 
       - name: blessing_grade
         description: Grade or tier of the applied blessing.
         tests:
           - dbt_utils.expression_is_true:
-              expression: "blessing_grade is null or blessing_grade >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "blessing_grade is null or blessing_grade >= 0"
+                config:
+                  severity: warn
 
 
       - name: run_id
@@ -315,15 +340,17 @@ models:
         tests:
           - not_null
           - dbt_utils.expression_is_true:
-              expression: "snapshot_version >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "snapshot_version >= 0"
+                config:
+                  severity: warn
 
       - name: schema_version
         description: Version of the source schema used during ingestion.
         tests:
           - not_null
           - dbt_utils.expression_is_true:
-              expression: "schema_version >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "schema_version >= 0"
+                config:
+                  severity: warn

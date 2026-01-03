@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    alias = 'silver_ops_processed_snapshots'
+    alias = 'silver_ops_processed_snapshots',
     incremental_strategy = 'merge',
     unique_key = ['account_name', 'source_file'],
     on_schema_change = 'sync_all_columns'

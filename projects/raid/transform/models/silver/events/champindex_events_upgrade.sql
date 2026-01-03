@@ -19,7 +19,7 @@ changed_entities AS (
     SELECT DISTINCT
         s.account_name,
         s.owned_champion_id
-    FROM {{ ref('silver_champindex_scd2') }} AS s
+    FROM {{ ref('champindex_scd2') }} AS s
     CROSS JOIN cutoff AS c
     WHERE s.valid_from > c.max_event_ts
 ),
@@ -38,7 +38,7 @@ candidate_rows AS (
             PARTITION BY s.account_name, s.owned_champion_id
             ORDER BY s.valid_from DESC, scd_id DESC
         ) AS rn_desc
-    FROM {{ ref('silver_champindex_scd2') }} AS s
+    FROM {{ ref('champindex_scd2') }} AS s
     INNER JOIN changed_entities AS e
         ON  s.account_name = e.account_name
         AND s.owned_champion_id = e.owned_champion_id

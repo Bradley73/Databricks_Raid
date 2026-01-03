@@ -19,28 +19,33 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - source_file
+          arguments:
+            combination_of_columns:
+                - account_name
+                - source_file
 
       # Cheap invariants
       - dbt_utils.expression_is_true:
-          expression: "snapshot_order_no >= 1"
-          config:
-            severity: warn
+          arguments:
+            expression: "snapshot_order_no >= 1"
+            config:
+                severity: warn
 
       - dbt_utils.expression_is_true:
-          expression: "snapshot_version is null or snapshot_version >= 0"
-          config:
-            severity: warn
+          arguments:
+            expression: "snapshot_version is null or snapshot_version >= 0"
+            config:
+                severity: warn
 
       # sanity checks
       - dbt_utils.expression_is_true:
-          expression: "event_sort_key like '________-____-%'"
-          config: {severity: warn}
+          arguments:
+            expression: "event_sort_key like '________-____-%'"
+            config: {severity: warn}
 
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [account_name, snapshot_order_no]
+          arguments:
+            combination_of_columns: [account_name, snapshot_order_no]
 
     columns:
       - name: account_name
@@ -104,7 +109,8 @@ models:
     tests:
       # Each quarantined row should have a reason
       - dbt_utils.expression_is_true:
-          expression: "failure_reason is not null"
+          arguments:
+            expression: "failure_reason is not null"
 
     columns:
       - name: failure_reason
@@ -115,11 +121,12 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values:
-                - "NULL_KEY:account_name"
-                - "NULL_KEY:owned_champion_id"
-                - "NULL_KEY:champion_id"
-                - "NULL_KEY:source_file"
+              arguments:
+                values:
+                    - "NULL_KEY:account_name"
+                    - "NULL_KEY:owned_champion_id"
+                    - "NULL_KEY:champion_id"
+                    - "NULL_KEY:source_file"
 
       - name: account_name
         description: >
@@ -153,7 +160,8 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [account_name]
+          arguments:
+            combination_of_columns: [account_name]
 
     columns:
       - name: account_name
@@ -203,7 +211,8 @@ models:
 
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: [account_name, source_file]
+          arguments:
+            combination_of_columns: [account_name, source_file]
 
     columns:
       - name: account_name

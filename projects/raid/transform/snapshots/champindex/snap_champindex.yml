@@ -1,6 +1,6 @@
 version: 2
 
-models:
+snapshots:
   - name: snap_champindex
     description: >
       SCD2 history of owned champions per account, implemented as a dbt snapshot
@@ -14,17 +14,19 @@ models:
     tests:
       # Ensure each SCD2 version start is unique per owned champion
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-            - dbt_valid_from
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+              - dbt_valid_from
 
       # Ensure at most one current version per owned champion
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-          where: "dbt_valid_to IS NULL"
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+            where: "dbt_valid_to IS NULL"
 
     columns:
       # ----------------------------
@@ -51,8 +53,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       # ----------------------------
       # Tracked attributes (check_cols)

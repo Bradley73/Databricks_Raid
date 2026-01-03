@@ -22,7 +22,7 @@ base AS (
         owned_champion_id,
         champion_id,
         valid_from
-    FROM {{ ref('silver_champindex_scd2') }} AS s
+    FROM {{ ref('champindex_scd2') }} AS s
     CROSS JOIN cutoff AS c
     WHERE s.valid_from > c.max_event_ts
 ),
@@ -31,7 +31,7 @@ obtained AS (
     SELECT
         b.*
     FROM base AS b
-    LEFT ANTI JOIN {{ ref('silver_champindex_scd2') }} AS s0
+    LEFT ANTI JOIN {{ ref('champindex_scd2') }} AS s0
         ON  s0.account_name = b.account_name
         AND s0.owned_champion_id = b.owned_champion_id
         AND (

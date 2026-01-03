@@ -38,9 +38,10 @@ models:
       
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - champion_id
+          arguments:
+            combination_of_columns:
+              - account_name
+              - champion_id
 
     columns:
       - name: account_name
@@ -53,8 +54,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       - name: first_seen_ts
         description: >
@@ -84,6 +86,7 @@ models:
         tests:
           - not_null
           - dbt_utils.expression_is_true:
-              expression: "first_seen_snapshot_order_no >= 0"
-              config:
-                severity: warn
+              arguments:
+                expression: "first_seen_snapshot_order_no >= 0"
+                config:
+                  severity: warn

@@ -15,9 +15,11 @@ models:
       
     tests:
       - dbt_utils.expression_is_true:
-          expression: "delta_value > 0"
+          arguments:
+            expression: "delta_value > 0"
       - dbt_utils.expression_is_true:
-          expression: "new_value > old_value"
+          arguments:
+            expression: "new_value > old_value"
 
     columns:
       - name: event_id
@@ -32,8 +34,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champindex_scd2')
-              field: scd_id
+              arguments:
+                to: ref('champindex_scd2')
+                field: scd_id
 
       - name: account_name
         description: Account identifier the upgrade event belongs to.
@@ -50,8 +53,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       - name: event_ts
         description: Timestamp the upgrade becomes effective (valid_from of the SCD2 row).
@@ -63,7 +67,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['RANK', 'EMPOWER', 'BLESSING']
+              arguments:
+                values: ['RANK', 'EMPOWER', 'BLESSING']
 
       - name: old_value
         description: Previous value for the upgraded attribute.

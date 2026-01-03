@@ -14,9 +14,10 @@ models:
       
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
 
     columns:
       - name: account_name
@@ -35,8 +36,9 @@ models:
           to the champion_lookup dimension for static champion attributes.
         tests:
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       - name: rank
         description: >

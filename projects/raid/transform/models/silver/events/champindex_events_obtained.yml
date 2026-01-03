@@ -14,11 +14,13 @@ models:
       
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ['account_name', 'owned_champion_id']
+          arguments:
+            combination_of_columns: ['account_name', 'owned_champion_id']
 
       # event_id is defined as scd_id for obtained events
       - dbt_utils.expression_is_true:
-          expression: "event_id = scd_id"
+          arguments:
+            expression: "event_id = scd_id"
 
     columns:
       - name: event_id
@@ -36,8 +38,10 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champindex_scd2')
-              field: scd_id
+              arguments:
+                to: ref('champindex_scd2')
+                field: scd_id
+
 
       - name: account_name
         description: Account identifier the obtained event belongs to.
@@ -54,8 +58,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       - name: event_ts
         description: Timestamp the owned champion is first observed (valid_from of the first SCD2 version).

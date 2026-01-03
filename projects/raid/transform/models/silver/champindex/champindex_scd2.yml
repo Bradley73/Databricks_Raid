@@ -15,25 +15,29 @@ models:
     tests:
       # One version start per entity at a given timestamp
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-            - valid_from
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+              - valid_from
 
       # At most one current record per entity
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - account_name
-            - owned_champion_id
-          where: "is_current = true"
+          arguments:
+            combination_of_columns:
+              - account_name
+              - owned_champion_id
+            where: "is_current = true"
 
       # SCD window sanity: valid_to must be after valid_from when present
       - dbt_utils.expression_is_true:
-          expression: "valid_to is null or valid_to > valid_from"
+          arguments:
+            expression: "valid_to is null or valid_to > valid_from"
 
       # Current rows must not be deleted; deleted rows must not be current
       - dbt_utils.expression_is_true:
-          expression: "not (is_current = true and is_deleted = true)"
+          arguments:
+            expression: "not (is_current = true and is_deleted = true)"
 
     columns:
       # ----------------------------
@@ -61,8 +65,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('champion_lookup')
-              field: champion_id
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_id
 
       # ----------------------------
       # Tracked attributes (versioned)
