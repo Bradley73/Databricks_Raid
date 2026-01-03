@@ -28,6 +28,13 @@ models:
               - snapshot_date
               - snapshot_version
 
+      # moved here because it references two columns
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "level <= rank * 10"
+          config:
+            severity: warn
+
     columns:
       - name: account_name
         description: Account identifier the snapshot belongs to.
@@ -57,9 +64,8 @@ models:
           - not_null:
               config:
                 severity: warn
-          - dbt_utils.accepted_values:
-              arguments:
-                values: [1, 2, 3, 4, 5, 6]
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
@@ -71,12 +77,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "level >= 0"
-              config:
-                severity: warn
-          - dbt_utils.expression_is_true:
-              arguments:
-                expression: "level <= rank * 10"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -86,9 +87,8 @@ models:
           - not_null:
               config:
                 severity: warn
-          - dbt_utils.accepted_values:
-              arguments:
-                values: [0, 1, 2, 3, 4]
+          - accepted_values:
+              values: [0, 1, 2, 3, 4]
               config:
                 severity: warn
 
@@ -98,9 +98,8 @@ models:
           - not_null:
               config:
                 severity: warn
-          - dbt_utils.accepted_values:
-              arguments:
-                values: [1, 2, 3, 4, 5, 6]
+          - accepted_values:
+              values: [1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
@@ -110,9 +109,8 @@ models:
           - not_null:
               config:
                 severity: warn
-          - dbt_utils.accepted_values:
-              arguments:
-                values: [1, 2, 3, 4]
+          - accepted_values:
+              values: [1, 2, 3, 4]
               config:
                 severity: warn
 
@@ -124,7 +122,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "(faction BETWEEN 1 AND 18)"
+                expression: "between 1 and 18"
               config:
                 severity: warn
 
@@ -136,7 +134,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "used_t1_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -148,7 +146,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "unused_t1_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -160,7 +158,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "used_t2_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -172,7 +170,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "unused_t2_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -184,7 +182,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "used_t3_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -196,7 +194,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "unused_t3_mastery_scrolls >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -208,7 +206,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "hp >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -220,7 +218,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "atk >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -232,7 +230,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "def >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -244,7 +242,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "crit_rate >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -256,7 +254,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "crit_damage >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -268,7 +266,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "spd >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -280,7 +278,7 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "acc >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -292,16 +290,15 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "res >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
       - name: blessing_id
         description: Identifier of the applied blessing.
         tests:
-          - dbt_utils.accepted_values:
-              arguments:
-                values: [0, 1, 2, 3, 4, 5, 6]
+          - accepted_values:
+              values: [0, 1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
@@ -310,7 +307,7 @@ models:
         tests:
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "blessing_grade IS NULL OR blessing_grade >= 0"
+                expression: "is null or >= 0"
               config:
                 severity: warn
 
@@ -340,7 +337,7 @@ models:
           - not_null
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "snapshot_version >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -350,6 +347,6 @@ models:
           - not_null
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "schema_version >= 0"
+                expression: ">= 0"
               config:
                 severity: warn
