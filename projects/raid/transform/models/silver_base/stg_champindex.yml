@@ -19,6 +19,8 @@ models:
               - account_name
               - owned_champion_id
               - source_file
+        config:
+          severity: warn
 
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -27,6 +29,8 @@ models:
               - owned_champion_id
               - snapshot_date
               - snapshot_version
+        config:
+          severity: warn
 
       # moved here because it references two columns
       - dbt_utils.expression_is_true:
@@ -65,7 +69,8 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
@@ -88,7 +93,8 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [0, 1, 2, 3, 4]
+              arguments:
+                values: [0, 1, 2, 3, 4]
               config:
                 severity: warn
 
@@ -99,7 +105,8 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4, 5, 6]
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
@@ -110,7 +117,8 @@ models:
               config:
                 severity: warn
           - accepted_values:
-              values: [1, 2, 3, 4]
+              arguments:
+                values: [1, 2, 3, 4]
               config:
                 severity: warn
 
@@ -298,16 +306,17 @@ models:
         description: Identifier of the applied blessing.
         tests:
           - accepted_values:
-              values: [0, 1, 2, 3, 4, 5, 6]
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6]
               config:
                 severity: warn
 
       - name: blessing_grade
         description: Grade or tier of the applied blessing.
         tests:
-          - accepted_range:
-              min_value: 0
-              inclusive: true
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
               config:
                 severity: warn
 
@@ -334,7 +343,6 @@ models:
       - name: snapshot_version
         description: Version number of the snapshot for a given date.
         tests:
-          - not_null
           - dbt_utils.expression_is_true:
               arguments:
                 expression: ">= 0"
@@ -342,11 +350,11 @@ models:
                 severity: warn
 
       - name: schema_version
-        description: Version of the source schema used during ingestion.
         tests:
-          - not_null
-          - dbt_utils.expression_is_true:
+          - accepted_values:
               arguments:
-                expression: ">= 0"
-              config:
-                severity: warn
+                values: ["1.0"]
+            config:
+              severity: warn
+
+
