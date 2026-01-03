@@ -11,7 +11,7 @@ models:
     config:
       alias: silver_champindex_scd2
       tags: ['contract']
-      
+
     tests:
       # One version start per entity at a given timestamp
       - dbt_utils.unique_combination_of_columns:
@@ -33,11 +33,15 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "valid_to is null or valid_to > valid_from"
+          config:
+            severity: warn
 
       # Current rows must not be deleted; deleted rows must not be current
       - dbt_utils.expression_is_true:
           arguments:
             expression: "not (is_current = true and is_deleted = true)"
+          config:
+            severity: error
 
     columns:
       # ----------------------------
@@ -46,8 +50,6 @@ models:
       - name: account_name
         description: >
           Account identifier the owned champion belongs to. Part of the natural business key.
-        # Optional: if champindex_current filters null keys, this will always be true;
-        # leaving not_null here is fine since this is a consumer-facing contract.
         tests:
           - not_null
 

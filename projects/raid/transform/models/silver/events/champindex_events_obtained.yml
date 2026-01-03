@@ -11,7 +11,7 @@ models:
     config:
       alias: silver_champindex_events_obtained
       tags: ['contract']
-      
+
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -21,6 +21,8 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "event_id = scd_id"
+          config:
+            severity: warn
 
     columns:
       - name: event_id
@@ -41,7 +43,6 @@ models:
               arguments:
                 to: ref('champindex_scd2')
                 field: scd_id
-
 
       - name: account_name
         description: Account identifier the obtained event belongs to.

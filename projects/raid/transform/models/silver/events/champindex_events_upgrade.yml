@@ -12,14 +12,19 @@ models:
     config:
       alias: silver_champindex_events_upgrade
       tags: ['contract']
-      
+
     tests:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "delta_value > 0"
+          config:
+            severity: error
+
       - dbt_utils.expression_is_true:
           arguments:
             expression: "new_value > old_value"
+          config:
+            severity: error
 
     columns:
       - name: event_id
@@ -66,7 +71,7 @@ models:
         description: Which attribute increased (RANK, EMPOWER, BLESSING).
         tests:
           - not_null
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: ['RANK', 'EMPOWER', 'BLESSING']
 

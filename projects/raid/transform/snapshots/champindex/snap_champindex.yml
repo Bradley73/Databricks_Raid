@@ -28,6 +28,12 @@ snapshots:
               - owned_champion_id
             where: "dbt_valid_to IS NULL"
 
+      # (Optional but recommended) Ensure dbt_scd_id is unique globally
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - dbt_scd_id
+
     columns:
       # ----------------------------
       # Business keys

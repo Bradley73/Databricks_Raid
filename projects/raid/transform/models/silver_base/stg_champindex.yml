@@ -11,7 +11,7 @@ models:
     config:
       alias: silver_stg_champindex
       tags: ['contract']
-      
+
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -57,11 +57,11 @@ models:
           - not_null:
               config:
                 severity: warn
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: [1, 2, 3, 4, 5, 6]
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: level
         description: Champion level.
@@ -72,13 +72,13 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "level >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "level <= rank * 10"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: empower_level
         description: Champion empower level.
@@ -86,11 +86,11 @@ models:
           - not_null:
               config:
                 severity: warn
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: [0, 1, 2, 3, 4]
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: rarity
         description: Champion rarity tier.
@@ -98,11 +98,11 @@ models:
           - not_null:
               config:
                 severity: warn
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: [1, 2, 3, 4, 5, 6]
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: affinity
         description: Champion affinity.
@@ -110,11 +110,11 @@ models:
           - not_null:
               config:
                 severity: warn
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: [1, 2, 3, 4]
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: faction
         description: Champion faction.
@@ -124,9 +124,9 @@ models:
                 severity: warn
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "faction between 1 and 18"
-                config:
-                  severity: warn
+                expression: "(faction BETWEEN 1 AND 18)"
+              config:
+                severity: warn
 
       - name: used_t1_mastery_scrolls
         description: Number of Tier 1 mastery scrolls used.
@@ -137,8 +137,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "used_t1_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: unused_t1_mastery_scrolls
         description: Number of unused Tier 1 mastery scrolls.
@@ -149,8 +149,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "unused_t1_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: used_t2_mastery_scrolls
         description: Number of Tier 2 mastery scrolls used.
@@ -161,8 +161,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "used_t2_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: unused_t2_mastery_scrolls
         description: Number of unused Tier 2 mastery scrolls.
@@ -173,8 +173,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "unused_t2_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: used_t3_mastery_scrolls
         description: Number of Tier 3 mastery scrolls used.
@@ -185,8 +185,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "used_t3_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: unused_t3_mastery_scrolls
         description: Number of unused Tier 3 mastery scrolls.
@@ -197,8 +197,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "unused_t3_mastery_scrolls >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: hp
         description: Champion base HP stat.
@@ -209,8 +209,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "hp >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: atk
         description: Champion base attack stat.
@@ -221,8 +221,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "atk >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: def
         description: Champion base defense stat.
@@ -233,8 +233,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "def >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: crit_rate
         description: Champion critical hit rate.
@@ -245,8 +245,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "crit_rate >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: crit_damage
         description: Champion critical damage multiplier.
@@ -257,8 +257,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "crit_damage >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: spd
         description: Champion speed stat.
@@ -269,8 +269,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "spd >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: acc
         description: Champion accuracy stat.
@@ -281,8 +281,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "acc >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: res
         description: Champion resistance stat.
@@ -293,27 +293,26 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "res >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: blessing_id
         description: Identifier of the applied blessing.
         tests:
-          - accepted_values:
+          - dbt_utils.accepted_values:
               arguments:
                 values: [0, 1, 2, 3, 4, 5, 6]
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: blessing_grade
         description: Grade or tier of the applied blessing.
         tests:
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "blessing_grade is null or blessing_grade >= 0"
-                config:
-                  severity: warn
-
+                expression: "blessing_grade IS NULL OR blessing_grade >= 0"
+              config:
+                severity: warn
 
       - name: run_id
         description: Ingestion pipeline run identifier.
@@ -342,8 +341,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "snapshot_version >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn
 
       - name: schema_version
         description: Version of the source schema used during ingestion.
@@ -352,5 +351,5 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "schema_version >= 0"
-                config:
-                  severity: warn
+              config:
+                severity: warn

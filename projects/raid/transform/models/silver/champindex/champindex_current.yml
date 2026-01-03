@@ -11,7 +11,7 @@ models:
     config:
       alias: silver_champindex_current
       tags: ['contract']
-      
+
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

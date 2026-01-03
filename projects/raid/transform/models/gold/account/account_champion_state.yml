@@ -16,6 +16,10 @@ models:
         to have a record for any champion ever observed for an account. This model uses an **inner join** to enforce that contract.
 
       Tests in this model focus only on logic introduced here and avoid duplicating upstream column validation.
+
+    config:
+      alias: gold_account_champion_state
+
     meta:
       layer: gold
       grain: ["account_name", "champion_id"]
@@ -36,26 +40,23 @@ models:
               AND coalesce(max_rank, 0) >= 0
               AND coalesce(max_empower_level, 0) >= 0
               AND coalesce(max_blessing_level, 0) >= 0
-            config:
-              severity: error
+          config:
+            severity: error
 
       # Consistency smoke test (warn only due to snapshot gaps):
       # If obtained events were complete, obtained ~= owned + deleted.
       - dbt_utils.expression_is_true:
           arguments:
             expression: "coalesce(total_obtained, 0) = total_owned + total_deleted"
-            config:
-              severity: warn
+          config:
+            severity: warn
 
       # Optional (warn): "upgraded but not owned" can happen with snapshot gaps, but it’s a useful signal.
       - dbt_utils.expression_is_true:
           arguments:
             expression: "NOT (total_owned = 0 AND last_upgraded_ts IS NOT NULL)"
-            config:
-              severity: warn
-
-    config:
-      alias: gold_account_champion_state
+          config:
+            severity: warn
 
     columns:
       - name: account_name
