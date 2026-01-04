@@ -36,12 +36,12 @@ models:
         description: >
           Unique identifier for the champion entity.
         tests:
-          relationships:
-                arguments:
-                  to: ref('champion_lookup')
-                  field: champion_key
-                config:
-                  severity: warn
+          - relationships:
+              arguments:
+                to: ref('champion_lookup')
+                field: champion_key
+              config:
+                severity: warn
 
       - name: source_champion_id
         description: >
