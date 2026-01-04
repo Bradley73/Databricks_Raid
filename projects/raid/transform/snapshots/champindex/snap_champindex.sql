@@ -13,7 +13,6 @@
     strategy = 'check',
 
     check_cols = [
-      'source_champion_id',
       'rank',
       'level',
       'empower_level',
@@ -43,6 +42,7 @@ SELECT
     --keys
     account_name,
     owned_champion_id,
+    champion_key,
     source_champion_id,
 
     --tracked fields

@@ -29,18 +29,26 @@ models:
         description: >
           Unique identifier for the owned champion instance within an account. This
           represents a single owned copy of a champion and is stable across snapshots.
+        tests:
+          - not_null
+
+      - name: champion_key
+        description: >
+          Unique identifier for the champion entity.
+        tests:
+          relationships:
+                arguments:
+                  to: ref('champion_lookup')
+                  field: champion_key
+                config:
+                  severity: warn
 
       - name: source_champion_id
         description: >
-          Identifier of the champion type (shared across all owned copies). Used to join
-          to the champion_lookup dimension for static champion attributes.
+          Raw champion identifier from the source system.
+          Retained in silver for lineage and debugging only.
         tests:
-          - relationships:
-              arguments:
-                to: ref('champion_lookup')
-                field: champion_key
-              config:
-                severity: warn
+          - not_null
 
       - name: rank
         description: >

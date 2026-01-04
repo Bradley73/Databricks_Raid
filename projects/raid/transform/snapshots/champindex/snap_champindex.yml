@@ -52,7 +52,7 @@ snapshots:
         tests:
           - not_null
 
-      - name: champion_id
+      - name: champion_key
         description: >
           Identifier of the champion type (shared across all owned copies).
           Changes to this field trigger a new SCD2 version.
@@ -61,7 +61,14 @@ snapshots:
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: champion_key
+      
+      - name: source_champion_id
+        description: >
+          Raw champion identifier from the source system.
+          Retained in silver for lineage and debugging only.
+        tests:
+          - not_null
 
       # ----------------------------
       # Tracked attributes (check_cols)
