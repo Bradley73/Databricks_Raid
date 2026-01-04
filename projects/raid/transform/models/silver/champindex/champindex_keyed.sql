@@ -39,5 +39,5 @@ SELECT
     s.schema_version
 FROM {{ ref('stg_champindex__final') }} s
 LEFT JOIN {{ ref('champion_id_map') }} l
-  ON l.source_champion_id = s.champion_id
+  ON l.source_champion_id = s.source_champion_id
 ;
