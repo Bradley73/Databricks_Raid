@@ -42,7 +42,7 @@ quarantine_rows AS (
         q.account_name,
         q.source_file,
         COUNT(*) AS quarantine_key_rows_in_snapshot
-    FROM {{ ref('ops_quarantine_champindex_current_keys') }} q
+    FROM {{ ref('ops_quarantine_champindex_classified') }} q
     JOIN latest l
       ON q.account_name = l.account_name
      AND q.source_file  = l.source_file

@@ -1,0 +1,489 @@
+version: 2
+
+models:
+  # ----------------------------------------------------------------------
+  # 1) Base staging: full column documentation lives ONLY here
+  # ----------------------------------------------------------------------
+  - name: stg_champindex
+    description: >
+      Silver staging view for Champion Index snapshots.
+      Contains one row per owned champion per snapshot, enriched with
+      standardized column names and audit metadata.
+      Used as the upstream source for classification, dedupe ranking, and final staging.
+
+      NOTE: Column-level data quality enforcement is applied in stg_champindex__final.
+      This model is intentionally documentation-first.
+
+    config:
+      alias: silver_stg_champindex
+      tags: ['contract']
+
+    columns:
+      - name: account_name
+        description: Account identifier the snapshot belongs to.
+
+      - name: owned_champion_id
+        description: Unique identifier for the owned champion instance.
+
+      - name: champion_id
+        description: Identifier for the champion type (shared across owned copies).
+
+      - name: champion_name
+        description: Display name of the champion.
+
+      - name: rank
+        description: Champion rank.
+
+      - name: level
+        description: Champion level.
+
+      - name: empower_level
+        description: Champion empower level.
+
+      - name: rarity
+        description: Champion rarity tier.
+
+      - name: affinity
+        description: Champion affinity.
+
+      - name: faction
+        description: Champion faction.
+
+      - name: used_t1_mastery_scrolls
+        description: Number of Tier 1 mastery scrolls used.
+
+      - name: unused_t1_mastery_scrolls
+        description: Number of unused Tier 1 mastery scrolls.
+
+      - name: used_t2_mastery_scrolls
+        description: Number of Tier 2 mastery scrolls used.
+
+      - name: unused_t2_mastery_scrolls
+        description: Number of unused Tier 2 mastery scrolls.
+
+      - name: used_t3_mastery_scrolls
+        description: Number of Tier 3 mastery scrolls used.
+
+      - name: unused_t3_mastery_scrolls
+        description: Number of unused Tier 3 mastery scrolls.
+
+      - name: hp
+        description: Champion base HP stat.
+
+      - name: atk
+        description: Champion base attack stat.
+
+      - name: def
+        description: Champion base defense stat.
+
+      - name: crit_rate
+        description: Champion critical hit rate.
+
+      - name: crit_damage
+        description: Champion critical damage multiplier.
+
+      - name: spd
+        description: Champion speed stat.
+
+      - name: acc
+        description: Champion accuracy stat.
+
+      - name: res
+        description: Champion resistance stat.
+
+      - name: blessing_id
+        description: Identifier of the applied blessing.
+
+      - name: blessing_grade
+        description: Grade or tier of the applied blessing.
+
+      - name: run_id
+        description: Ingestion pipeline run identifier.
+
+      - name: source_file
+        description: Source file name from which the snapshot was ingested.
+
+      - name: snapshot_ts
+        description: Timestamp when the snapshot was ingested.
+
+      - name: snapshot_date
+        description: Snapshot business date.
+
+      - name: snapshot_version
+        description: Version number of the snapshot for a given date.
+
+      - name: schema_version
+        description: Schema contract version emitted by ingestion.
+
+
+  # ----------------------------------------------------------------------
+  # 2) Classified staging: only documents NEW fields (no repeated column docs)
+  # ----------------------------------------------------------------------
+  - name: stg_champindex__classified
+    description: >
+      Classified staging view for Champion Index snapshots.
+      Inherits all standardized champindex fields from stg_champindex and adds quarantine
+      classification fields to support consistent downstream filtering and QA.
+
+      Grain: one row per (account_name, owned_champion_id) per snapshot/file.
+
+    config:
+      alias: silver_stg_champindex__classified
+      tags: ['contract']
+
+    columns:
+      - name: quarantine_reason
+        description: >
+          Primary quarantine reason code (first-match wins). NULL means the row is not quarantined.
+          Examples: KEY_NULL:account_name, LINEAGE_NULL:run_id, DOMAIN:affinity, RANGE:hp.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "IS NOT NULL OR is_quarantined = false"
+              config:
+                severity: warn
+
+      - name: quarantine_bucket
+        description: >
+          High-level quarantine category. NULL means the row is not quarantined.
+          Buckets are a small, stable set used for easy filtering and reporting.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "IS NOT NULL OR is_quarantined = false"
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: ["KEY", "LINEAGE", "MISSING_ATTR", "DOMAIN", "RANGE"]
+              config:
+                severity: warn
+
+      - name: is_quarantined
+        description: >
+          True if the row violates any staging contract rule and should be treated as quarantined.
+          Derived from quarantine_reason (non-null => true).
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              config:
+                severity: warn
+
+      - name: is_quarantined_key
+        description: True when quarantine_bucket = 'KEY'.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              config:
+                severity: warn
+
+      - name: is_quarantined_data
+        description: True when quarantine_bucket IN ('DOMAIN', 'RANGE', 'MISSING_ATTR').
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              config:
+                severity: warn
+
+      - name: is_quarantined_lineage
+        description: True when quarantine_bucket = 'LINEAGE'.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: [true, false]
+              config:
+                severity: warn
+
+
+  # ----------------------------------------------------------------------
+  # 3) Ephemeral dedupe ranking: document only rn/dup_count (logic-only)
+  # ----------------------------------------------------------------------
+  - name: stg_champindex__dedupe_ranked
+    description: >
+      Ephemeral helper model that ranks eligible champindex rows for deterministic, file-grain deduplication.
+      Single source of truth shared by:
+        - stg_champindex__final (winners; rn = 1)
+        - ops_quarantine_champindex_duplicates (losers; rn > 1)
+
+      Input: stg_champindex__classified filtered to is_quarantined = false.
+      Dedup grain: (account_name, owned_champion_id, source_file).
+
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "rn >= 1"
+          config:
+            severity: warn
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "dup_count >= 1"
+          config:
+            severity: warn
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "dup_count != 1 OR rn = 1"
+          config:
+            severity: warn
+
+    columns:
+      - name: rn
+        description: >
+          Row number within each (account_name, owned_champion_id, source_file) group according to the
+          deterministic ordering. Winner row is rn = 1; losers have rn > 1.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: dup_count
+        description: >
+          Number of rows in the (account_name, owned_champion_id, source_file) dedupe group. Values > 1
+          indicate a duplicate group.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+  # ----------------------------------------------------------------------
+  # 4) Final staging: ALL enforcement lives here (hard errors)
+  # ----------------------------------------------------------------------
+  - name: stg_champindex__final
+    description: >
+      Canonical staged champindex model for downstream consumption.
+      This model:
+        - Filters to eligible rows (is_quarantined = false via stg_champindex__dedupe_ranked)
+        - Enforces file-grain uniqueness by selecting the deterministic winner (rn = 1) per group:
+          (account_name, owned_champion_id, source_file)
+        - Drops quarantine classification columns to present a clean, stable contract.
+
+      Downstream models should reference stg_champindex__final only.
+
+    config:
+      alias: silver_stg_champindex__final
+      tags: ['contract']
+
+    tests:
+      # Enforced uniqueness at the grain we guarantee downstream
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [account_name, owned_champion_id, source_file]
+
+      # Snapshot-grain uniqueness is monitored elsewhere (ops_processed_snapshots), not enforced here
+
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "level <= rank * 10"
+          config:
+            severity: warn
+
+    columns:
+      # Only enforce hard-contract essentials here (all hard errors by default)
+
+      - name: account_name
+        tests: [not_null]
+
+      - name: owned_champion_id
+        tests: [not_null]
+
+      - name: champion_id
+        tests: [not_null]
+
+      - name: champion_name
+        tests: [not_null]
+
+      - name: rank
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+
+      - name: level
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: empower_level
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4]
+
+      - name: rarity
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6]
+
+      - name: affinity
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+
+      - name: faction
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "BETWEEN 1 AND 18"
+
+      - name: used_t1_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: unused_t1_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: used_t2_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: unused_t2_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: used_t3_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: unused_t3_mastery_scrolls
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: hp
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: atk
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: def
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: crit_rate
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: crit_damage
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: spd
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: acc
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: res
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: blessing_id
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6]
+
+      - name: blessing_grade
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: run_id
+        tests: [not_null]
+
+      - name: source_file
+        tests: [not_null]
+
+      - name: snapshot_ts
+        tests: [not_null]
+
+      - name: snapshot_date
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: snapshot_version
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+
+      - name: schema_version
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["1.0"]

@@ -24,6 +24,15 @@ models:
               - account_name
               - source_file
 
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - account_name
+              - snapshot_date
+              - snapshot_version
+          config:
+            severity: warn
+
       # Cheap invariants
       - dbt_utils.expression_is_true:
           arguments:
@@ -96,57 +105,155 @@ models:
         description: >
           Version number within the same snapshot_date (used in event_sort_key and deterministic ordering).
 
-  - name: ops_quarantine_champindex_current_keys
+  - name: ops_quarantine_champindex_classified
     description: >
-      Quarantine view for champindex_current key integrity. Contains only rows from the
-      latest in-order snapshot per account (per ops_processed_snapshots) where one or
-      more required key fields are NULL. Used as the single enforcement/debug surface
-      for key-null issues before building champindex_current and downstream SCD2/events.
+      Quarantine view for champindex staging rows flagged as invalid by stg_champindex__classified.
+      Contains only rows where is_quarantined = true, with quarantine_reason and quarantine_bucket
+      describing the first-match failure cause and high-level category.
+
+      This is the operational debugging surface for row-level data quality issues (keys, lineage, domain, range).
 
     config:
-      alias: silver_ops_quarantine_champindex_current_keys
+      alias: silver_ops_quarantine_champindex_classified
       tags: ['contract']
 
     tests:
-      # Each quarantined row should have a reason
       - dbt_utils.expression_is_true:
           arguments:
             expression: "failure_reason IS NOT NULL"
+          config:
+            severity: warn
 
     columns:
       - name: failure_reason
         description: >
-          Reason the row was quarantined. Currently emitted for NULL keys:
-          NULL_KEY:account_name, NULL_KEY:owned_champion_id, NULL_KEY:champion_id,
-          NULL_KEY:source_file.
+          Operational alias for quarantine_reason. Non-null for all rows in this quarantine view.
+          Examples: KEY_NULL:account_name, LINEAGE_NULL:run_id, DOMAIN:affinity, RANGE:hp.
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
+
+      - name: quarantine_reason
+        description: >
+          Primary quarantine reason code emitted by stg_champindex__classified.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: quarantine_bucket
+        description: >
+          High-level quarantine category emitted by stg_champindex__classified.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+          - accepted_values:
+              arguments:
+                values: ["KEY", "LINEAGE", "MISSING_ATTR", "DOMAIN", "RANGE"]
+              config:
+                severity: warn
+
+      - name: is_quarantined
+        description: True for all rows in this quarantine view.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [true]
+              config:
+                severity: warn
+
+      # Passthrough columns from stg_champindex for debugging (documented, no tests)
+      - name: account_name
+        description: Account identifier from stg_champindex. May be NULL depending on failure_reason.
+
+      - name: owned_champion_id
+        description: Owned champion instance identifier from stg_champindex. May be NULL depending on failure_reason.
+
+      - name: champion_id
+        description: Champion type identifier from stg_champindex. May be NULL depending on failure_reason.
+
+      - name: source_file
+        description: Source file path from stg_champindex. May be NULL depending on failure_reason.
+
+      - name: snapshot_ts
+        description: Snapshot ingestion timestamp (from stg_champindex).
+
+      - name: snapshot_date
+        description: Snapshot business date (from stg_champindex).
+
+      - name: snapshot_version
+        description: Snapshot version number (from stg_champindex).
+
+  - name: ops_quarantine_champindex_duplicates
+    description: >
+      Quarantine view for duplicate champindex rows dropped during file-grain deduplication.
+      Contains only "loser" rows (rn > 1) from the dedupe ranking logic, for the grain:
+      (account_name, owned_champion_id, source_file).
+
+      This view ensures no silent row drops when stg_champindex__final selects rn = 1 winners.
+
+    config:
+      alias: silver_ops_quarantine_champindex_duplicates
+      tags: ['contract']
+
+    tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "failure_reason IS NOT NULL"
+          config:
+            severity: warn
+
+    columns:
+      - name: failure_reason
+        description: >
+          Duplicate quarantine reason code. Emitted for all rows in this view.
+        tests:
+          - not_null:
+              config:
+                severity: warn
           - accepted_values:
               arguments:
                 values:
-                  - "NULL_KEY:account_name"
-                  - "NULL_KEY:owned_champion_id"
-                  - "NULL_KEY:champion_id"
-                  - "NULL_KEY:source_file"
+                  - "DUPLICATE_KEY:account_name+owned_champion_id+source_file"
+              config:
+                severity: warn
 
-      - name: account_name
+      - name: duplicate_group_count
         description: >
-          Account identifier from stg_champindex. May be NULL for quarantined rows.
+          Number of rows in the duplicate group for the key (account_name, owned_champion_id, source_file).
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      - name: duplicate_row_number
+        description: >
+          Row-number assigned by dedupe ranking (rn). Losers are rn > 1.
+        tests:
+          - not_null:
+              config:
+                severity: warn
+
+      # Passthrough columns (documented, no tests)
+      - name: account_name
+        description: Account identifier.
 
       - name: owned_champion_id
-        description: >
-          Owned champion instance identifier from stg_champindex. May be NULL for
-          quarantined rows.
-
-      - name: champion_id
-        description: >
-          Champion type identifier from stg_champindex. May be NULL for quarantined rows.
+        description: Owned champion instance identifier.
 
       - name: source_file
-        description: >
-          Source file path from stg_champindex. May be NULL for quarantined rows.
+        description: Source file path for the snapshot file.
 
-      # The remaining columns are passthrough from stg_champindex for debugging.
+      - name: snapshot_ts
+        description: Snapshot ingestion timestamp.
+
+      - name: snapshot_date
+        description: Snapshot business date.
+
+      - name: snapshot_version
+        description: Snapshot version number.
 
   - name: ops_last_run_summary
     description: >
