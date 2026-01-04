@@ -15,7 +15,7 @@ WITH classified AS (
             /* Key nulls */
             WHEN s.account_name IS NULL THEN 'KEY_NULL:account_name'
             WHEN s.owned_champion_id IS NULL THEN 'KEY_NULL:owned_champion_id'
-            WHEN s.champion_id IS NULL THEN 'KEY_NULL:champion_id'
+            WHEN s.source_champion_id IS NULL THEN 'KEY_NULL:source_champion_id'
             WHEN s.source_file IS NULL THEN 'KEY_NULL:source_file'
 
             /* Lineage / audit nulls */
@@ -64,7 +64,7 @@ WITH classified AS (
         CASE
             WHEN s.account_name IS NULL
               OR s.owned_champion_id IS NULL
-              OR s.champion_id IS NULL
+              OR s.source_champion_id IS NULL
               OR s.source_file IS NULL
               THEN 'KEY'
 
