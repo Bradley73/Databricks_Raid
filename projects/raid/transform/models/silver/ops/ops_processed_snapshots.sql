@@ -13,7 +13,7 @@ WITH base AS (
         snapshot_ts,
         snapshot_date,
         snapshot_version
-    FROM {{ ref('stg_champindex') }}
+    FROM {{ ref('stg_champindex__final') }}
 ),
 
 accounts_in_batch AS (

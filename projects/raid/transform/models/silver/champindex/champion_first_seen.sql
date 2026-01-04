@@ -39,7 +39,7 @@ new_src AS (
         s.snapshot_ts,
         s.source_file,
         n.snapshot_order_no
-    FROM {{ ref('stg_champindex') }} s
+    FROM {{ ref('stg_champindex__final') }} s
     JOIN new_snapshots n
       ON n.account_name = s.account_name
      AND n.source_file  = s.source_file

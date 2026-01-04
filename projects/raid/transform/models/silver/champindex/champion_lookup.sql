@@ -13,7 +13,7 @@ WITH base AS (
         rarity,
         affinity,
         faction
-    FROM {{ ref('stg_champindex') }}
+    FROM {{ ref('stg_champindex__final') }}
 ),
 
 candidates AS (
