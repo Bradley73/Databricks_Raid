@@ -5,8 +5,8 @@
 
 WITH base AS (
     SELECT account_name, champion_id,
-        SUM(is_current) AS total_owned,
-        SUM(is_deleted) AS total_deleted,
+        SUM(CASE WHEN is_current THEN 1 ELSE 0 END) AS total_owned,
+        SUM(CASE WHEN is_deleted THEN 1 ELSE 0 END) AS total_deleted,
         MAX(empower_level) AS max_empower_level,
         MAX(blessing_id) AS max_blessing_level,
         MAX(rank) AS max_rank
