@@ -26,7 +26,7 @@ current_rows AS (
         -- keys
         s.account_name,
         s.owned_champion_id,
-        s.champion_id,
+        s.source_champion_id,
 
         -- tracked fields
         s.rank,
