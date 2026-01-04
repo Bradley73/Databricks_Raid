@@ -20,4 +20,4 @@ ranked AS (
 )
 
 SELECT *
-FROM ranked;
+FROM ranked
