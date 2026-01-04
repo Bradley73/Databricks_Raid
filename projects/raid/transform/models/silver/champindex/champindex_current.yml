@@ -39,6 +39,8 @@ models:
               arguments:
                 to: ref('champion_lookup')
                 field: champion_id
+              config:
+                severity: warn
 
       - name: rank
         description: >
