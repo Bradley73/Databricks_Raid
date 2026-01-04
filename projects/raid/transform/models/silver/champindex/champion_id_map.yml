@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: champion_id_map
+    description: >
+      Mapping table from the raw source champion identifier to the canonical champion_key.
+      One row per source_champion_id. The champion_key is deterministically derived from
+      normalized champion attributes (name, rarity, affinity, faction) observed in snapshots.
+
+      Used to attach champion_key to champindex rows (e.g. silver_champindex_keyed).
+      source_champion_id is retained for lineage/debugging only and should not be used as a business key.
+
+    config:
+      alias: silver_champion_id_map
+      tags: ['contract']
+
+    columns:
+      - name: source_champion_id
+        description: >
+          Raw champion identifier from the source system (lineage/debug only).
+          Primary key of this mapping table.
+        tests:
+          - not_null
+          - unique
+
+      - name: champion_key
+        description: >
+          Canonical, stable identifier for a champion. Derived via sha2 hash of
+          normalized (champion_name, rarity, affinity, faction) and used for joins/grouping downstream.
+        tests:
+          - not_null
+
+      - name: inferred_champion_number
+        description: >
+          Heuristic grouping derived from source_champion_id integer-division by 10.
+          Retained as a diagnostic field only; not a primary identifier.
+        tests:
+          - not_null

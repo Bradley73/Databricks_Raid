@@ -60,7 +60,7 @@ models:
         tests:
           - not_null
 
-      - name: champion_id
+      - name: source_champion_id
         description: >
           Identifier of the champion type (shared across all owned copies). Present on each SCD2
           version row and may change over time if the source system reassigns identifiers.
@@ -69,7 +69,7 @@ models:
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: source_champion_id
 
       # ----------------------------
       # Tracked attributes (versioned)

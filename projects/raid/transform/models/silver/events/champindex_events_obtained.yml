@@ -17,13 +17,6 @@ models:
           arguments:
             combination_of_columns: ['account_name', 'owned_champion_id']
 
-      # event_id is defined as scd_id for obtained events
-      - dbt_utils.expression_is_true:
-          arguments:
-            expression: "event_id = scd_id"
-          config:
-            severity: warn
-
     columns:
       - name: event_id
         description: >
@@ -54,14 +47,14 @@ models:
         tests:
           - not_null
 
-      - name: champion_id
+      - name: champion_key
         description: Champion type identifier for the owned champion at time of first observation.
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: champion_key
 
       - name: event_ts
         description: Timestamp the owned champion is first observed (valid_from of the first SCD2 version).

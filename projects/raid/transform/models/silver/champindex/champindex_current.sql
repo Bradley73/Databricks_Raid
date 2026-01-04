@@ -54,7 +54,7 @@ current_rows AS (
 
         -- lineage
         s.source_file
-    FROM {{ ref('stg_champindex__final') }} s
+    FROM {{ ref('champindex_keyed') }} s
     JOIN latest_file_per_account l
       ON s.account_name = l.account_name
      AND s.source_file  = l.source_file
@@ -62,8 +62,4 @@ current_rows AS (
 
 SELECT *
 FROM current_rows
-WHERE account_name IS NOT NULL
-  AND owned_champion_id IS NOT NULL
-  AND champion_id IS NOT NULL
-  AND source_file IS NOT NULL
 ;

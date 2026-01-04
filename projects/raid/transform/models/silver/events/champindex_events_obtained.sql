@@ -20,7 +20,7 @@ base AS (
         scd_id,
         account_name,
         owned_champion_id,
-        champion_id,
+        champion_key,
         valid_from
     FROM {{ ref('champindex_scd2') }} AS s
     CROSS JOIN cutoff AS c
@@ -45,6 +45,6 @@ SELECT
     scd_id,
     account_name,
     owned_champion_id,
-    champion_id,
+    champion_key,
     valid_from AS event_ts
 FROM obtained;

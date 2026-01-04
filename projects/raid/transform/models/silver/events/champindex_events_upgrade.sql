@@ -29,7 +29,7 @@ candidate_rows AS (
         s.scd_id,
         s.account_name,
         s.owned_champion_id,
-        s.champion_id,
+        s.champion_key,
         s.valid_from,
         s.rank,
         s.empower_level,
@@ -80,7 +80,7 @@ events AS (
         wp.scd_id,
         wp.account_name,
         wp.owned_champion_id,
-        wp.champion_id,
+        wp.champion_key,
         wp.valid_from AS event_ts,
         u.upgrade_type,
         u.old_value,
@@ -106,7 +106,7 @@ SELECT
     scd_id,
     account_name,
     owned_champion_id,
-    champion_id,
+    champion_key,
 
     --event details
     event_ts,

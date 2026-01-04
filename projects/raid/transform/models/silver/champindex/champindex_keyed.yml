@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: silver_champindex_keyed
+    description: >
+      Canonical champindex silver spine.
+      Inherits all descriptive columns from `stg_champindex__final` and
+      attaches a stable `champion_key` via `champion_id_map`.
+
+      This model is the **required upstream dependency** for all downstream
+      champindex silver and gold models. Identity resolution occurs here.
+
+    config:
+      tags: ['contract', 'spine']
+
+    tests:
+      # This ensures LEFT JOIN does not silently allow unmapped champions
+      - dbt_utils.expression_is_true:
+          expression: "champion_key IS NOT NULL"
+        config:
+          severity: error
+
+    columns:
+      - name: champion_key
+        description: >
+          Canonical, stable identifier for a champion.
+          Deterministically derived from champion attributes and used for
+          all grouping and joins downstream.
+        tests:
+          - not_null
+
+      - name: source_champion_id
+        description: >
+          Raw champion identifier from the source system.
+          Retained in silver for lineage and debugging only.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('champion_id_map')
+              field: source_champion_id
+

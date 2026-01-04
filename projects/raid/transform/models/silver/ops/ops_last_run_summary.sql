@@ -30,7 +30,7 @@ champ_rows AS (
         s.account_name,
         s.source_file,
         COUNT(*) AS champ_rows_in_snapshot
-    FROM {{ ref('stg_champindex__final') }} s
+    FROM {{ ref('champindex_keyed') }} s
     JOIN latest l
       ON s.account_name = l.account_name
      AND s.source_file  = l.source_file

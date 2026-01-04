@@ -30,7 +30,7 @@ models:
           Unique identifier for the owned champion instance within an account. This
           represents a single owned copy of a champion and is stable across snapshots.
 
-      - name: champion_id
+      - name: source_champion_id
         description: >
           Identifier of the champion type (shared across all owned copies). Used to join
           to the champion_lookup dimension for static champion attributes.
@@ -38,7 +38,7 @@ models:
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: source_champion_id
               config:
                 severity: warn
 

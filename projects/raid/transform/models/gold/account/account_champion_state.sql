@@ -54,6 +54,7 @@ final AS (
 
 SELECT
     account_name,
+    champion_id,
     champion_name,
     rarity,
     affinity,

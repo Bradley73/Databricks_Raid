@@ -171,7 +171,7 @@ models:
       - name: owned_champion_id
         description: Owned champion instance identifier from stg_champindex. May be NULL depending on failure_reason.
 
-      - name: champion_id
+      - name: source_champion_id
         description: Champion type identifier from stg_champindex. May be NULL depending on failure_reason.
 
       - name: source_file

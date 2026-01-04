@@ -13,7 +13,7 @@ WITH src AS (
 SELECT
     account_name,
     owned_champion_id,
-    champion_id,
+    source_champion_id,
     champion_name,
     rank,
     level,

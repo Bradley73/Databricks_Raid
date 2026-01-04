@@ -25,7 +25,7 @@ models:
       - name: owned_champion_id
         description: Unique identifier for the owned champion instance.
 
-      - name: champion_id
+      - name: source_champion_id
         description: Identifier for the champion type (shared across owned copies).
 
       - name: champion_name
@@ -302,7 +302,7 @@ models:
       - name: owned_champion_id
         tests: [not_null]
 
-      - name: champion_id
+      - name: source_champion_id
         tests: [not_null]
 
       - name: champion_name

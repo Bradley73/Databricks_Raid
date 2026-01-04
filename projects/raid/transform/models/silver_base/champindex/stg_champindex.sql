@@ -9,7 +9,7 @@ SELECT
     ID                       AS owned_champion_id,
 
     -- Champion identity (not unique to owned copy)
-    HeroID                   AS champion_id,
+    HeroID                   AS source_champion_id,
 
     -- Descriptors
     Name                     AS champion_name,

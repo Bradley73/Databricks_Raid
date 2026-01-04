@@ -3,54 +3,41 @@ version: 2
 models:
   - name: champion_lookup
     description: >
-      Silver lookup table for champion type descriptors (one row per champion_id).
-      This table represents the canonical dimension for champion types in the Raid
-      lakehouse and is used to enrich owned-champion models (e.g., current state,
-      SCD2 history, and events) without duplicating descriptive attributes across
-      time or grain.
+      Canonical champion lookup keyed by champion_key (one row per champion_key).
+      Provides stable descriptive attributes for champions (name, rarity, affinity, faction)
+      to support joins from keyed champindex facts and downstream gold models.
 
-      Incremental behavior:
-      - Insert-only by champion_id. Once a champion_id exists in this table, it is
-        not updated or overwritten.
-      - The first observed attribute set for a champion_id is treated as authoritative.
-      - If a champion's descriptive attributes (e.g., name, rarity, affinity, faction)
-        are ever observed to change upstream, this should be treated as a data quality
-        issue and explicitly investigated rather than silently merged or corrected.
-
-      Design notes:
-      - This model is intentionally compact and stable, and is expected to grow slowly.
-      - It serves as the parent dimension for referential integrity checks from downstream
-        fact, event, and SCD2 models.
-      - If the source system begins to support true attribute changes over time, this
-        model can be promoted to an SCD dimension.
+      This model is populated incrementally from champindex_keyed and is append-only:
+      once a champion_key is observed, its attributes are not updated in-place.
 
     config:
       alias: silver_champion_lookup
       tags: ['contract']
 
     columns:
-      - name: champion_id
-        description: Champion type identifier (primary key for this lookup).
+      - name: champion_key
+        description: >
+          Canonical, stable identifier for a champion. Primary key of this lookup table.
         tests:
           - not_null
           - unique
 
       - name: champion_name
-        description: Display name of the champion.
+        description: Display name of the champion for this champion_key.
         tests:
           - not_null
 
       - name: rarity
-        description: Champion rarity tier.
+        description: Champion rarity tier for this champion_key.
         tests:
           - not_null
 
       - name: affinity
-        description: Champion affinity.
+        description: Champion affinity for this champion_key.
         tests:
           - not_null
 
       - name: faction
-        description: Champion faction.
+        description: Champion faction for this champion_key.
         tests:
           - not_null

@@ -2,18 +2,18 @@
     materialized = 'incremental',
     alias = 'silver_champion_lookup',
     incremental_strategy = 'merge',
-    unique_key = ['champion_id'],
+    unique_key = ['champion_key'],
     on_schema_change = 'sync_all_columns'
 ) }}
 
 WITH base AS (
     SELECT DISTINCT
-        champion_id,
+        champion_key,
         champion_name,
         rarity,
         affinity,
         faction
-    FROM {{ ref('stg_champindex__final') }}
+    FROM {{ ref('champindex_keyed') }}
 ),
 
 candidates AS (
@@ -21,7 +21,7 @@ candidates AS (
     SELECT b.*
     FROM base b
     LEFT ANTI JOIN {{ this }} t
-      ON b.champion_id = t.champion_id
+      ON b.champion_key = t.champion_key
     {% else %}
     SELECT *
     FROM base
@@ -29,7 +29,7 @@ candidates AS (
 )
 
 SELECT
-    champion_id,
+    champion_key,
     champion_name,
     rarity,
     affinity,

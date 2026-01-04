@@ -53,14 +53,14 @@ models:
         tests:
           - not_null
 
-      - name: champion_id
+      - name: champion_key
         description: Champion type identifier for the owned champion at the time of upgrade.
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: champion_key
 
       - name: event_ts
         description: Timestamp the upgrade becomes effective (valid_from of the SCD2 row).

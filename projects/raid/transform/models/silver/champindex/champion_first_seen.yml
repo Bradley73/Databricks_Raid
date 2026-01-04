@@ -4,7 +4,7 @@ models:
   - name: champion_first_seen
     description: >
       Feature-spine table capturing the first time an account ever owned a given unique champion.
-      Grain: one row per (account_name, champion_id).
+      Grain: one row per (account_name, champion_key).
 
       Purpose:
       - Provide a stable, low-compute foundation for downstream feature engineering without repeatedly scanning
@@ -16,8 +16,8 @@ models:
         Predict the likelihood an account will delete (sell/consume) newly acquired champions, using features such as:
           * days_since_first_seen_champion_type (tenure of that champion type within the account)
           * time_to_first_delete_of_type (when the type first appeared vs when deletions start occurring)
-          * prior_deletes_of_type_count (from a separate deletions fact) joined on champion_id
-          * champion_type_rarity/affinity/faction (from champion_lookup) joined on champion_id
+          * prior_deletes_of_type_count (from a separate deletions fact) joined on champion_key
+          * champion_type_rarity/affinity/faction (from champion_lookup) joined on champion_key
         This supports recommendations like “flag incoming champions likely to be deleted” or “suggest keeping champions
         of certain types based on historical behavior”.
 
@@ -41,7 +41,7 @@ models:
           arguments:
             combination_of_columns:
               - account_name
-              - champion_id
+              - champion_key
 
     columns:
       - name: account_name
@@ -49,14 +49,14 @@ models:
         tests:
           - not_null
 
-      - name: champion_id
+      - name: champion_key
         description: Champion type identifier (shared across owned copies).
         tests:
           - not_null
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: champion_id
+                field: champion_key
 
       - name: first_seen_ts
         description: >
