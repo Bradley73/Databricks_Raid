@@ -26,4 +26,3 @@ violations AS (
 
 SELECT *
 FROM violations
-;

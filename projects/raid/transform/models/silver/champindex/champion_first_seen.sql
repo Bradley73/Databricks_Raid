@@ -51,7 +51,7 @@ candidates AS (
     -- keep only unseen (account_name, champion_id)
     SELECT n.*
     FROM new_src n
-    LEFT ANTI JOIN /*+ BROADCAST(e) */ {{ this }} e
+    LEFT ANTI JOIN BROADCAST({{ this }}) e
       ON e.account_name = n.account_name
      AND e.champion_id  = n.champion_id
     {% else %}
