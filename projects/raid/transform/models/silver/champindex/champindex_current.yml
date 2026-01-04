@@ -38,7 +38,7 @@ models:
           - relationships:
               arguments:
                 to: ref('champion_lookup')
-                field: source_champion_id
+                field: champion_key
               config:
                 severity: warn
 
