@@ -34,7 +34,7 @@ new_src AS (
     -- Only read champ rows for the new snapshot files
     SELECT
         s.account_name,
-        s.champion_id,
+        s.champion_key,
         s.owned_champion_id,
         s.snapshot_ts,
         s.source_file,
