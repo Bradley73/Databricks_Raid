@@ -29,4 +29,3 @@ JOIN scd2_min m
   ON e.account_name = m.account_name
  AND e.owned_champion_id = m.owned_champion_id
 WHERE e.event_ts <> m.min_valid_from
-;

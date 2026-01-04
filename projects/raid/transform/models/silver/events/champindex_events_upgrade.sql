@@ -72,9 +72,6 @@ with_prev AS (
         ) AS old_blessing_grade
 
     FROM incremental_scope AS l
-    {% if is_incremental() %}
-    WHERE rn_desc = 1
-    {% endif %}
 ),
 
 events AS (
@@ -98,6 +95,9 @@ events AS (
     ) u AS upgrade_type, old_value, new_value
     WHERE u.old_value IS NOT NULL
       AND u.new_value > u.old_value
+    {% if is_incremental() %}
+      AND rn_desc = 1
+    {% endif %}
 )
 
 SELECT

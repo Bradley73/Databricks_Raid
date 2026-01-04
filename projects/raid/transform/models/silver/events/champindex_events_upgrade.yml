@@ -71,7 +71,7 @@ models:
         description: Which attribute increased (RANK, EMPOWER, BLESSING).
         tests:
           - not_null
-          - dbt_utils.accepted_values:
+          - accepted_values:
               arguments:
                 values: ['RANK', 'EMPOWER', 'BLESSING']
 

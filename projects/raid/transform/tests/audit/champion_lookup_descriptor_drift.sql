@@ -1,19 +1,19 @@
 -- Flags champion_ids whose descriptors drift in stg_champindex (name/rarity/affinity/faction).
 -- This is a "dimension stability" audit; consider running on schedule or as WARN severity.
 
-with combos as (
-    select
+WITH combos AS (
+    SELECT
         champion_id,
-        count(distinct concat_ws('||',
-            cast(champion_name as string),
-            cast(rarity as string),
-            cast(affinity as string),
-            cast(faction as string)
-        )) as distinct_descriptor_sets
-    from {{ ref('stg_champindex') }}
-    where champion_id is not null
-    group by champion_id
+        count(DISTINCT concat_ws('||',
+            cast(champion_name AS string),
+            cast(rarity AS string),
+            cast(affinity AS string),
+            cast(faction AS string)
+        )) AS distinct_descriptor_sets
+    FROM {{ ref('stg_champindex') }}
+    WHERE champion_id IS NOT NULL
+    GROUP BY champion_id
 )
-select *
-from combos
-where distinct_descriptor_sets > 1
+SELECT *
+FROM combos
+WHERE distinct_descriptor_sets > 1
