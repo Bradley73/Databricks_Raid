@@ -7,7 +7,7 @@ SELECT
     s.account_name,
     s.owned_champion_id,
     l.champion_key,
-    s.champion_id AS source_champion_id,
+    s.source_champion_id,
     s.champion_name,
     s.rank,
     s.level,
