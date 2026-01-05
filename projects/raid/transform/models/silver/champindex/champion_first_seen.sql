@@ -53,7 +53,7 @@ candidates AS (
     FROM new_src n
     LEFT ANTI JOIN {{ this }} e
       ON e.account_name = n.account_name
-     AND e.champion_id  = n.champion_id
+     AND e.champion_key  = n.champion_key
     {% else %}
     SELECT *
     FROM new_src
