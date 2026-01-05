@@ -62,14 +62,18 @@ models:
 
       - name: source_champion_id
         description: >
-          Identifier of the champion type (shared across all owned copies). Present on each SCD2
-          version row and may change over time if the source system reassigns identifiers.
+          Raw champion identifier from the source system.
+          Retained in silver for lineage and debugging only.
+          May change over time depending on source system but NOT tracked.
         tests:
           - not_null
-          - relationships:
-              arguments:
-                to: ref('champion_lookup')
-                field: source_champion_id
+
+      - name: champion_key
+        description: >
+          Identifier of the unique champion entity (shared across all owned copies). Present on each SCD2
+          version row.
+        tests:
+          - not_null
 
       # ----------------------------
       # Tracked attributes (versioned)

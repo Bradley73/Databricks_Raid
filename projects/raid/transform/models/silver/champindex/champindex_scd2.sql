@@ -12,6 +12,7 @@ SELECT
   --keys
   account_name,
   owned_champion_id,
+  champion_key,
   source_champion_id,
 
   --change tracked data
