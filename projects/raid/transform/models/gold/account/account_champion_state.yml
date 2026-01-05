@@ -3,10 +3,10 @@ version: 2
 models:
   - name: account_champion_state
     description: |
-      Consumer-ready current-state rollup per (account_name, champion_id), built by pre-aggregating
+      Consumer-ready current-state rollup per (account_name, champion_key), built by pre-aggregating
       SCD2 state and observable event tables to the same grain before joining.
 
-      **Grain:** one row per (account_name, champion_id).
+      **Grain:** one row per (account_name, champion_key).
 
       **Important source notes:**
       - The upstream snapshot source means event-derived counts (e.g. total_obtained) are *observable only* and may undercount
@@ -21,13 +21,13 @@ models:
       alias: gold_account_champion_state
       meta:
         layer: gold
-        grain: ["account_name", "champion_id"]
+        grain: ["account_name", "champion_key"]
 
     tests:
       # Contract: one row per grain
       - dbt_utils.unique_combination_of_columns:
           arguments:
-            combination_of_columns: ["account_name", "champion_id"]
+            combination_of_columns: ["account_name", "champion_key"]
 
       # Aggregates introduced here should never be negative
       - dbt_utils.expression_is_true:
@@ -61,6 +61,9 @@ models:
       - name: account_name
         description: "Account identifier (natural key). Inherited from upstream models."
 
+      - name: champion_key
+        description: "Champion entity unique identifier (natural key). Inherited from upstream models."
+
       - name: champion_name
         description: "Champion display name from champion_lookup."
 
@@ -75,7 +78,7 @@ models:
 
       - name: first_seen_ts
         description: |
-          First time this champion_id was observed for the account, sourced from champion_first_seen.
+          First time this champion_key was observed for the account, sourced from champion_first_seen.
           This is considered robust due to ingestion contracts (staging-derived), and is expected to exist for all
           champions ever observed for an account.
 
@@ -86,24 +89,24 @@ models:
 
       - name: total_owned
         description: |
-          Derived from champindex_scd2: SUM(is_current) at (account_name, champion_id).
+          Derived from champindex_scd2: SUM(is_current) at (account_name, champion_key).
           Interpreted as number of currently owned copies observed.
 
       - name: total_deleted
         description: |
-          Derived from champindex_scd2: SUM(is_deleted) at (account_name, champion_id).
+          Derived from champindex_scd2: SUM(is_deleted) at (account_name, champion_key).
           Represents observable deletions across the SCD2 history.
 
       - name: total_obtained
         description: |
-          Derived from champindex_events_obtained: COUNT(*) at (account_name, champion_id).
+          Derived from champindex_events_obtained: COUNT(*) at (account_name, champion_key).
           Due to snapshot gaps and fodder usage between snapshots, this is a lower bound on true obtains.
 
       - name: max_rank
-        description: "Derived from champindex_scd2: MAX(rank) at (account_name, champion_id)."
+        description: "Derived from champindex_scd2: MAX(rank) at (account_name, champion_key)."
 
       - name: max_empower_level
-        description: "Derived from champindex_scd2: MAX(empower_level) at (account_name, champion_id)."
+        description: "Derived from champindex_scd2: MAX(empower_level) at (account_name, champion_key)."
 
       - name: max_blessing_level
-        description: "Derived from champindex_scd2: MAX(blessing_id) at (account_name, champion_id)."
+        description: "Derived from champindex_scd2: MAX(blessing_id) at (account_name, champion_key)."
