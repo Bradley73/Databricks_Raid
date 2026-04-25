@@ -72,6 +72,7 @@ BRONZE_META_SCHEMA = StructType([
     StructField("snapshot_ts", TimestampType(), True),
     StructField("snapshot_date", DateType(), True),
     StructField("schema_version", StringType(), True),
+    StructField("snapshot_version", IntegerType(), True)
 ])
 
 BRONZE_META_COLS = [f.name for f in BRONZE_META_SCHEMA.fields]
