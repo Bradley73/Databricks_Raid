@@ -33,7 +33,7 @@ WITH classified AS (
             WHEN s.rarity IS NULL OR s.rarity NOT IN (1, 2, 3, 4, 5, 6) THEN 'DOMAIN:rarity'
             WHEN s.affinity IS NULL OR s.affinity NOT IN (1, 2, 3, 4) THEN 'DOMAIN:affinity'
             WHEN s.blessing_id IS NULL OR s.blessing_id NOT IN (0, 1, 2, 3, 4, 5, 6) THEN 'DOMAIN:blessing_id'
-            WHEN s.schema_version <> '1.1' THEN 'DOMAIN:schema_version'
+            WHEN s.schema_version NOT IN ('1.0', '1.1') THEN 'DOMAIN:schema_version'
 
             /* Range checks */
             WHEN s.faction IS NULL OR s.faction < 1 OR s.faction > 18 THEN 'RANGE:faction'
@@ -83,7 +83,7 @@ WITH classified AS (
               OR (s.rarity IS NULL OR s.rarity NOT IN (1, 2, 3, 4, 5, 6))
               OR (s.affinity IS NULL OR s.affinity NOT IN (1, 2, 3, 4))
               OR (s.blessing_id IS NULL OR s.blessing_id NOT IN (0, 1, 2, 3, 4, 5, 6))
-              OR (s.schema_version IS NULL OR s.schema_version <> '1.1')
+              OR (s.schema_version IS NULL OR s.schema_version NOT IN ('1.0', '1.1'))
               THEN 'DOMAIN'
 
             WHEN (s.faction IS NULL OR s.faction < 1 OR s.faction > 18)
