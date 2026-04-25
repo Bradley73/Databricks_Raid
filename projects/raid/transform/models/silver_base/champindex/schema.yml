@@ -97,6 +97,9 @@ models:
       - name: blessing_grade
         description: Grade or tier of the applied blessing.
 
+      - name: books_missing
+        description: Number of missing skill books for the champion.
+
       - name: run_id
         description: Ingestion pipeline run identifier.
 
@@ -460,6 +463,13 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: ">= 0"
+                
+      - name: books_missing
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
 
       - name: run_id
         tests: [not_null]
@@ -486,4 +496,4 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: ["1.0"]
+                values: ["1.1"]

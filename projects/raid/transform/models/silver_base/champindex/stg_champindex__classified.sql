@@ -33,7 +33,7 @@ WITH classified AS (
             WHEN s.rarity IS NULL OR s.rarity NOT IN (1, 2, 3, 4, 5, 6) THEN 'DOMAIN:rarity'
             WHEN s.affinity IS NULL OR s.affinity NOT IN (1, 2, 3, 4) THEN 'DOMAIN:affinity'
             WHEN s.blessing_id IS NULL OR s.blessing_id NOT IN (0, 1, 2, 3, 4, 5, 6) THEN 'DOMAIN:blessing_id'
-            WHEN s.schema_version <> '1.0' THEN 'DOMAIN:schema_version'
+            WHEN s.schema_version <> '1.1' THEN 'DOMAIN:schema_version'
 
             /* Range checks */
             WHEN s.faction IS NULL OR s.faction < 1 OR s.faction > 18 THEN 'RANGE:faction'
@@ -53,6 +53,7 @@ WITH classified AS (
             WHEN s.acc IS NULL OR s.acc < 0 THEN 'RANGE:acc'
             WHEN s.res IS NULL OR s.res < 0 THEN 'RANGE:res'
             WHEN s.blessing_grade IS NULL OR s.blessing_grade < 0 THEN 'RANGE:blessing_grade'
+            WHEN s.books_missing IS NULL OR s.books_missing < 0 THEN 'RANGE:books_missing'
             WHEN s.snapshot_version IS NULL OR s.snapshot_version < 0 THEN 'RANGE:snapshot_version'
 
             ELSE NULL
@@ -82,7 +83,7 @@ WITH classified AS (
               OR (s.rarity IS NULL OR s.rarity NOT IN (1, 2, 3, 4, 5, 6))
               OR (s.affinity IS NULL OR s.affinity NOT IN (1, 2, 3, 4))
               OR (s.blessing_id IS NULL OR s.blessing_id NOT IN (0, 1, 2, 3, 4, 5, 6))
-              OR (s.schema_version IS NULL OR s.schema_version <> '1.0')
+              OR (s.schema_version IS NULL OR s.schema_version <> '1.1')
               THEN 'DOMAIN'
 
             WHEN (s.faction IS NULL OR s.faction < 1 OR s.faction > 18)
@@ -102,6 +103,7 @@ WITH classified AS (
               OR (s.acc IS NULL OR s.acc < 0)
               OR (s.res IS NULL OR s.res < 0)
               OR (s.blessing_grade IS NULL OR s.blessing_grade < 0)
+              OR (s.books_missing IS NULL OR s.books_missing < 0)
               OR (s.snapshot_version IS NULL OR s.snapshot_version < 0)
               THEN 'RANGE'
 
@@ -150,6 +152,7 @@ SELECT
     res,
     blessing_id,
     blessing_grade,
+    books_missing,
     run_id,
     source_file,
     snapshot_ts,

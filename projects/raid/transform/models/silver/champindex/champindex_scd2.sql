@@ -35,6 +35,7 @@ SELECT
   res,
   blessing_id,
   blessing_grade,
+  books_missing,
 
   --scd2 cols
   dbt_valid_from AS valid_from,

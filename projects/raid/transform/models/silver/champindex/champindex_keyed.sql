@@ -31,6 +31,7 @@ SELECT
     s.res,
     s.blessing_id,
     s.blessing_grade,
+    s.books_missing,
     s.run_id,
     s.source_file,
     s.snapshot_ts,

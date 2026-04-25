@@ -130,6 +130,10 @@ models:
           Grade or tier of the applied blessing. May be null if no blessing is active in
           the current snapshot.
 
+      - name: books_missing
+        description: >
+          Number of missing skill books for the champion.
+
       - name: source_file
         description: >
           Source file path corresponding to the latest in-order snapshot used to derive

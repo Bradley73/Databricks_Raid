@@ -31,7 +31,8 @@
       'acc',
       'res',
       'blessing_id',
-      'blessing_grade'
+      'blessing_grade',
+      'books_missing'
     ],
 
     invalidate_hard_deletes = true
@@ -68,6 +69,7 @@ SELECT
 
     blessing_id,
     blessing_grade,
+    books_missing,
 
     --lineage
     source_file

@@ -9,6 +9,7 @@ WITH base AS (
         SUM(CASE WHEN is_deleted THEN 1 ELSE 0 END) AS total_deleted,
         MAX(empower_level) AS max_empower_level,
         MAX(blessing_id) AS max_blessing_level,
+        MIN(books_missing) AS min_books_missing,
         MAX(rank) AS max_rank
     FROM {{ ref("champindex_scd2") }}
     GROUP BY account_name, champion_key
@@ -66,6 +67,7 @@ SELECT
     total_obtained,
     max_rank,
     max_empower_level,
-    max_blessing_level
+    max_blessing_level,
+    min_books_missing
 FROM final
 ;

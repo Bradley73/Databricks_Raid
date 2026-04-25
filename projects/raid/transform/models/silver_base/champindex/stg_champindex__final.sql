@@ -36,6 +36,7 @@ SELECT
     res,
     blessing_id,
     blessing_grade,
+    books_missing,
     run_id,
     source_file,
     snapshot_ts,

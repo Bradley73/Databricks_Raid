@@ -29,18 +29,19 @@ SELECT
     UnUsedT3MasScrolls       AS unused_t3_mastery_scrolls,
 
     -- Stats
-    HP                       AS hp,
-    ATK                      AS atk,
-    DEF                      AS def,
-    CritRate                 AS crit_rate,
-    CritDamage               AS crit_damage,
-    SPD                      AS spd,
-    ACC                      AS acc,
-    RES                      AS res,
+    CAST(ROUND(HP, 0) AS INT)        AS hp,
+    CAST(ROUND(ATK, 0) AS INT)       AS atk,
+    CAST(ROUND(DEF, 0) AS INT)       AS def,
+    CritRate                         AS crit_rate,
+    CritDamage                       AS crit_damage,
+    ROUND(SPD, 2)                    AS spd,
+    ACC                              AS acc,
+    RES                              AS res,
 
     -- Blessing
     BlessingID               AS blessing_id,
     BlessingGrade            AS blessing_grade,
+    BooksMissing             AS books_missing,
 
     -- Lineage / audit (keep)
     run_id                   AS run_id,

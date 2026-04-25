@@ -137,6 +137,10 @@ models:
         description: >
           Grade or tier of the applied blessing for this version. May be null if no blessing is active.
 
+      - name: books_missing
+        description: >
+          Number of missing skill books for the champion.
+
       # ----------------------------
       # SCD2 semantics (standardized)
       # ----------------------------

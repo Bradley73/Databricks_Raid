@@ -52,6 +52,7 @@ current_rows AS (
 
         s.blessing_id,
         s.blessing_grade,
+        s.books_missing,
 
         -- lineage
         s.source_file
