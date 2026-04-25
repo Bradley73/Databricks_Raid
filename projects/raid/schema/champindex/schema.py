@@ -14,10 +14,10 @@ Important:
 
 from pyspark.sql.types import (
     StructType, StructField,
-    StringType, IntegerType, TimestampType, DateType
+    StringType, IntegerType, TimestampType, DateType, DoubleType
 )
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 # ─────────────────────────────
 # 1) Dataset contract (business fields only)
@@ -42,17 +42,18 @@ DATA_SCHEMA = StructType([
     StructField("UsedT3MasScrolls", IntegerType(), True),
     StructField("UnUsedT3MasScrolls", IntegerType(), True),
 
-    StructField("HP", IntegerType(), True),
-    StructField("ATK", IntegerType(), True),
-    StructField("DEF", IntegerType(), True),
+    StructField("HP", DoubleType(), True),
+    StructField("ATK", DoubleType(), True),
+    StructField("DEF", DoubleType(), True),
     StructField("CritRate", IntegerType(), True),
     StructField("CritDamage", IntegerType(), True),
-    StructField("SPD", IntegerType(), True),
+    StructField("SPD", DoubleType(), True),
     StructField("ACC", IntegerType(), True),
     StructField("RES", IntegerType(), True),
 
     StructField("BlessingID", IntegerType(), True),
     StructField("BlessingGrade", IntegerType(), True),
+    StructField("BooksMissing", IntegerType(), True)
 ])
 
 DATA_COLS = [f.name for f in DATA_SCHEMA.fields]
